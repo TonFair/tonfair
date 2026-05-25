@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TonFair · Emergency Recovery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+  <script src="https://unpkg.com/tonweb@0.0.66/dist/tonweb.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #f0f2f7;
+      --surface:     #ffffff;
+      --surface2:    #f7f8fb;
+      --border:      #dde1ea;
+      --border-hi:   #0284c7;
+      --text:        #111827;
+      --text-mid:    #4b5563;
+      --text-dim:    #9ca3af;
+      --cyan:        #0284c7;
+      --amber:       #d97706;
+      --green:       #059669;
+      --red:         #e11d48;
+      --mono:        'Space Mono', monospace;
+      --sans:        'Syne', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      padding: 28px 16px 80px;
+    }
+
+    .wrap {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .hdr {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 36px;
+      gap: 16px;
+    }
+
+    .logo-mark {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      border: 1.5px solid var(--cyan);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--cyan);
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(2,132,199,0.18);
+    }
+
+    .logo-text { line-height: 1.1; }
+
+    .logo-name {
+      font-family: var(--sans);
+      font-weight: 800;
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .logo-sub {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-mid);
+    }
+
+    /* ── Network toggle ── */
+    .net-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .net-label {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .net-toggle {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .net-btn {
+      background: none;
+      border: none;
+      color: var(--text-mid);
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.06em;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+
+    .net-btn.active {
+      background: var(--cyan);
+      color: #fff;
+    }
+
+    /* ── Section label ── */
+    .sec-label {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 7px;
+      margin-left: 2px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .card:focus-within {
+      border-color: var(--border-hi);
+      box-shadow: 0 0 0 3px rgba(2,132,199,0.1);
+    }
+
+    /* ── Input + button row ── */
+    .row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tf-in {
+      flex: 1;
+      min-width: 0;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+
+    .tf-in::placeholder { color: var(--text-dim); }
+
+    .tf-in:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(2,132,199,0.12);
+    }
+
+    .tf-in::-webkit-inner-spin-button,
+    .tf-in::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .tf-btn {
+      background: var(--cyan);
+      border: 1px solid var(--cyan);
+      border-radius: 6px;
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      padding: 9px 16px;
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+
+    .tf-btn:hover:not(:disabled) {
+      background: #0369a1;
+      border-color: #0369a1;
+      box-shadow: 0 2px 8px rgba(2,132,199,0.25);
+    }
+
+    .tf-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .tf-btn-red {
+      background: #fff;
+      border-color: var(--red);
+      color: var(--red);
+      width: 100%;
+      padding: 12px;
+      font-size: 0.75rem;
+    }
+
+    .tf-btn-red:hover:not(:disabled) {
+      background: #fff1f2;
+      box-shadow: 0 2px 10px rgba(225,29,72,0.15);
+    }
+
+    .tf-btn-red.available {
+      background: var(--red);
+      color: #fff;
+      animation: pulse-danger 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-danger {
+      0%, 100% { box-shadow: 0 2px 8px rgba(225,29,72,0.25); }
+      50%       { box-shadow: 0 4px 20px rgba(225,29,72,0.45); }
+    }
+
+    /* ── Wallet area ── */
+    #ton-connect { display: flex; justify-content: center; }
+
+    .wallet-info {
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-mid);
+      margin-top: 8px;
+    }
+
+    .wallet-addr { color: var(--cyan); }
+
+    /* ── Stats grid ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 18px;
+      margin-bottom: 18px;
+    }
+
+    .stat + .stat {
+      border-left: 1px solid var(--border);
+      padding-left: 16px;
+    }
+
+    .stat-lbl {
+      font-family: var(--mono);
+      font-size: 0.56rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      margin-bottom: 5px;
+    }
+
+    .stat-val {
+      font-family: var(--mono);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .stat-aux {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--text-mid);
+      margin-top: 2px;
+    }
+
+    /* ── Timer ── */
+    .timer-lbl {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      margin-bottom: 8px;
+    }
+
+    .timer-val {
+      font-family: var(--mono);
+      font-size: 2.6rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      color: var(--amber);
+      margin-bottom: 10px;
+      transition: color 0.5s;
+    }
+
+    .timer-val.ready {
+      color: var(--green);
+    }
+
+    .timer-track {
+      height: 5px;
+      background: #e9ecf2;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .timer-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
+      border-radius: 3px;
+      transition: width 1s linear, background 0.5s;
+    }
+
+    .timer-fill.ready {
+      background: linear-gradient(90deg, #059669 0%, #10b981 100%);
+    }
+
+    /* ── Deal card ── */
+    .deal-inner {
+      margin-top: 14px;
+      background: #f7f8fb;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .deal-hdr {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      padding: 3px 10px;
+      border-radius: 4px;
+      border: 1px solid;
+    }
+
+    .badge-cyan  { color: #0284c7; border-color: #bae6fd; background: #f0f9ff; }
+    .badge-green { color: #059669; border-color: #a7f3d0; background: #f0fdf4; }
+    .badge-amber { color: #d97706; border-color: #fde68a; background: #fffbeb; }
+
+    .deal-fields { display: flex; flex-direction: column; gap: 12px; }
+
+    .df {
+      display: grid;
+      grid-template-columns: 96px 1fr;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .df-lbl {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      padding-top: 1px;
+    }
+
+    .df-val {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text);
+      word-break: break-all;
+      line-height: 1.4;
+    }
+
+    .df-nano {
+      display: block;
+      font-size: 0.6rem;
+      color: var(--text-mid);
+      margin-top: 2px;
+      font-style: italic;
+    }
+
+    .dep-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .dep-track {
+      flex: 1;
+      height: 4px;
+      background: #e9ecf2;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .dep-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0284c7, #38bdf8);
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+
+    .dep-pct {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      color: var(--text-mid);
+      min-width: 28px;
+      text-align: right;
+    }
+
+    .hr { height: 1px; background: var(--border); margin: 10px 0; }
+
+    /* ── Status messages ── */
+    .msg {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      padding: 8px 11px;
+      border-radius: 5px;
+      margin-top: 10px;
+      border: 1px solid;
+      display: none;
+      line-height: 1.5;
+    }
+
+    .msg.show  { display: block; }
+    .msg.info  { color: #0369a1; border-color: #bae6fd; background: #f0f9ff; }
+    .msg.ok    { color: #065f46; border-color: #a7f3d0; background: #f0fdf4; }
+    .msg.err   { color: #9f1239; border-color: #fecdd3; background: #fff1f2; }
+    .msg.warn  { color: #92400e; border-color: #fde68a; background: #fffbeb; }
+
+    /* ── Spinner ── */
+    .spin {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border: 1.5px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: rot 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+      opacity: 0.7;
+    }
+
+    @keyframes rot { to { transform: rotate(360deg); } }
+
+    /* ── Fade in ── */
+    .fi { animation: fi 0.25s ease both; }
+    @keyframes fi {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Hidden ── */
+    .h { display: none !important; }
+
+    /* ── Footer ── */
+    .foot {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--text-dim);
+      text-align: center;
+      margin-top: 36px;
+      line-height: 1.8;
+    }
+
+    .foot a { color: var(--text-mid); text-decoration: none; }
+    .foot a:hover { color: var(--cyan); }
+
+    .warn-box {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: #92400e;
+      padding: 10px 13px;
+      border-radius: 6px;
+      border: 1px solid #fde68a;
+      background: #fffbeb;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 480px) {
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stats .stat:nth-child(3) { grid-column: span 2; border-left: none; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px; padding-left: 0; }
+      .timer-val { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="hdr">
+    <div class="logo-mark">
+      <div class="logo-icon">TF</div>
+      <div class="logo-text">
+        <div class="logo-name">TonFair</div>
+        <div class="logo-sub">Emergency Recovery</div>
+      </div>
+    </div>
+    <div class="net-wrap">
+      <span class="net-label">Network</span>
+      <div class="net-toggle">
+        <button class="net-btn" id="btnMain" onclick="setNet('mainnet')">MAINNET</button>
+        <button class="net-btn active" id="btnTest" onclick="setNet('testnet')">TESTNET</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contract -->
+  <div class="sec-label">EventPool Contract</div>
+  <div class="card">
+    <div class="row">
+      <input type="text" id="contractIn" class="tf-in" placeholder="EQ… event pool contract address">
+      <button class="tf-btn" id="loadBtn" onclick="loadContract()">LOAD</button>
+    </div>
+    <div class="msg" id="contractMsg"></div>
+  </div>
+
+  <!-- Contract info -->
+  <div class="card h fi" id="infoCard">
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-lbl">Start Date</div>
+        <div class="stat-val" id="sDate">—</div>
+        <div class="stat-aux" id="sTime">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-lbl">Deals</div>
+        <div class="stat-val" id="sDeals">—</div>
+        <div class="stat-aux">dealsCount</div>
+      </div>
+      <div class="stat">
+        <div class="stat-lbl">Balance</div>
+        <div class="stat-val" id="sBal">—</div>
+        <div class="stat-aux" id="sBalNano">—</div>
+      </div>
+    </div>
+    <div>
+      <div class="timer-lbl">Time until emergency claim</div>
+      <div class="timer-val" id="timerVal">--:--:--</div>
+      <div class="timer-track"><div class="timer-fill" id="timerFill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- Deal lookup -->
+  <div class="sec-label">Your Deal</div>
+  <div class="card">
+    <div class="row">
+      <input type="number" id="dealIn" class="tf-in" placeholder="Deal ID" disabled>
+      <button class="tf-btn" id="checkBtn" onclick="checkDeal()" disabled>CHECK</button>
+    </div>
+
+    <!-- Deal details -->
+    <div class="deal-inner h fi" id="dealCard">
+      <div class="deal-hdr">
+        <span class="badge badge-cyan" id="dealBadge">Deal #—</span>
+        <span class="badge badge-amber h" id="fundedBadge">Funded</span>
+      </div>
+
+      <div class="deal-fields">
+        <div class="df">
+          <div class="df-lbl">BUY Vault</div>
+          <div class="df-val" id="fBuy">—</div>
+        </div>
+        <div class="df">
+          <div class="df-lbl">SELL Vault</div>
+          <div class="df-val" id="fSell">—</div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="deal-fields">
+        <div class="df">
+          <div class="df-lbl">Expected BUY</div>
+          <div class="df-val">
+            <span id="fAmtBuy">—</span>
+            <span class="df-nano" id="fAmtBuyN"></span>
+          </div>
+        </div>
+        <div class="df">
+          <div class="df-lbl">Expected SELL</div>
+          <div class="df-val">
+            <span id="fAmtSell">—</span>
+            <span class="df-nano" id="fAmtSellN"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="deal-fields">
+        <div class="df">
+          <div class="df-lbl">Deposited BUY</div>
+          <div class="df-val">
+            <span id="fDepBuy">—</span>
+            <span class="df-nano" id="fDepBuyN"></span>
+            <div class="dep-row">
+              <div class="dep-track"><div class="dep-fill" id="barBuy" style="width:0%"></div></div>
+              <div class="dep-pct" id="pctBuy">0%</div>
+            </div>
+          </div>
+        </div>
+        <div class="df">
+          <div class="df-lbl">Deposited SELL</div>
+          <div class="df-val">
+            <span id="fDepSell">—</span>
+            <span class="df-nano" id="fDepSellN"></span>
+            <div class="dep-row">
+              <div class="dep-track"><div class="dep-fill" id="barSell" style="width:0%"></div></div>
+              <div class="dep-pct" id="pctSell">0%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="msg" id="dealMsg"></div>
+  </div>
+
+  <!-- Emergency claim -->
+  <div class="sec-label">Emergency Claim</div>
+  <div class="card">
+    <div class="warn-box">
+      ⚠ Available 3 days after the last owner activity. Requires ~0.05 TON for gas.<br>
+      Returns the actually deposited amounts without fees. Anyone can trigger — funds always go to vault addresses.
+    </div>
+    <div id="ton-connect"></div>
+    <div class="wallet-info" id="walletInfo">Not connected</div>
+    <button class="tf-btn tf-btn-red" id="claimBtn" onclick="doClaim()" disabled>⚡ CONNECT WALLET TO CLAIM</button>
+    <div class="msg" id="claimMsg"></div>
+  </div>
+
+  <div class="foot">
+    All operations go directly to the TON blockchain — no exchange backend involved.<br>
+    <a href="https://github.com/tonfair" target="_blank">GitHub</a> &nbsp;·&nbsp; tonfair.com
+  </div>
+
+</div>
+
+<script>
+// ── КОНСТАНТЫ ──────────────────────────────────────────────
+// Debug: 300 сек (5 мин). Production: 259200 (3 дня)
+const EMERGENCY_DELAY = 300; // 259200
+
+const RPC_URL = {
+  mainnet: 'https://toncenter.com/api/v2/jsonRPC',
+  testnet: 'https://testnet.toncenter.com/api/v2/jsonRPC',
+};
+
+const ERR = {
+  101: 'Operation is owner-only',
+  102: 'Invalid deal ID (must be > 0)',
+  103: 'Deal already exists',
+  104: 'Deal not found — already paid out, cancelled, or wrong ID',
+  105: 'Invalid recipient address',
+  106: 'Too early — wait 3 days without owner activity',
+  107: 'Not a participant of this deal',
+  108: 'No active deals in contract',
+  109: 'Only owner can deactivate the contract',
+  65535: 'Unknown message opcode',
+};
+
+// ── СОСТОЯНИЕ ─────────────────────────────────────────────
+let network     = 'testnet';
+let tonweb      = mkTonweb('testnet');
+let connUI      = null;
+let walletAddr  = null;
+let contractAddr = null;
+let startTimeSec = null;
+let dealData    = null;
+let timerTick   = null;
+
+// ── TONWEB + RPC HELPERS ──────────────────────────────────
+function mkTonweb(net) {
+  return new TonWeb(new TonWeb.HttpProvider(RPC_URL[net]));
+}
+
+// Прямой fetch к TonCenter REST API (стабильнее чем TonWeb wrapper для сложных геттеров)
+function restBase() {
+  return RPC_URL[network].replace('/jsonRPC', '');
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function runGetMethod(address, method, stack) {
+  const r = await fetch(`${restBase()}/runGetMethod`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ address, method, stack }),
+  });
+  const d = await r.json();
+  if (!d.ok) throw new Error(d.error || (typeof d.result === 'string' ? d.result : null) || 'RPC error');
+  if (!d.result) throw new Error('Empty RPC response');
+  return d.result; // { exit_code, stack, ... }
+}
+
+// ── TON CONNECT ───────────────────────────────────────────
+// При деплое на GitHub Pages замените manifestUrl на свой:
+// https://<username>.github.io/<repo>/tonconnect-manifest.json
+connUI = new TON_CONNECT_UI.TonConnectUI({
+  manifestUrl: 'https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json',
+  buttonRootId: 'ton-connect',
+});
+
+connUI.onStatusChange(w => {
+  if (w) {
+    walletAddr = w.account.address;
+    const s = walletAddr.slice(0,6) + '…' + walletAddr.slice(-4);
+    document.getElementById('walletInfo').innerHTML =
+      `<span class="wallet-addr">${s}</span> connected`;
+  } else {
+    walletAddr = null;
+    document.getElementById('walletInfo').textContent = 'Not connected';
+  }
+  refreshClaimBtn();
+});
+
+// ── СЕТЬ ──────────────────────────────────────────────────
+function setNet(net) {
+  network = net;
+  tonweb = mkTonweb(net);
+  document.getElementById('btnMain').classList.toggle('active', net === 'mainnet');
+  document.getElementById('btnTest').classList.toggle('active', net === 'testnet');
+  resetContractState();
+}
+
+function resetContractState() {
+  contractAddr = null; startTimeSec = null; dealData = null;
+  clearInterval(timerTick);
+  hide('infoCard'); hide('dealCard');
+  document.getElementById('dealIn').disabled = true;
+  document.getElementById('checkBtn').disabled = true;
+  refreshClaimBtn();
+}
+
+// ── ЗАГРУЗКА КОНТРАКТА ────────────────────────────────────
+async function loadContract() {
+  const addr = document.getElementById('contractIn').value.trim();
+  const msgEl = document.getElementById('contractMsg');
+  hide('infoCard'); hide('dealCard');
+
+  if (!addr) { return setMsg(msgEl, 'err', '✕ Enter contract address'); }
+
+  setMsg(msgEl, 'info', '<span class="spin"></span>Querying blockchain…');
+  document.getElementById('loadBtn').disabled = true;
+
+  try {
+    // TonCenter free tier: ~1 req/s. Делаем задержку 800ms между вызовами чтобы не получить 429.
+    const infoRes = await fetch(`${restBase()}/getAddressInformation?address=${encodeURIComponent(addr)}`).then(r => r.json());
+    if (!infoRes.ok) throw new Error(infoRes.error || 'Failed to get contract info');
+    if (infoRes.result.state !== 'active') throw new Error('Contract is not active. Check the address and network.');
+    const balNano = BigInt(infoRes.result.balance || '0');
+
+    await sleep(1100);
+    const stRes = await runGetMethod(addr, 'startTime', []);
+    if (stRes.exit_code !== 0) throw new Error(`getter startTime: exit_code ${stRes.exit_code}`);
+    startTimeSec = parseInt(stRes.stack[0][1], 16);
+    if (!startTimeSec) throw new Error('startTime = 0. Make sure the contract is deployed with the startTime getter.');
+
+    await sleep(1100);
+    const cRes = await runGetMethod(addr, 'count', []);
+    if (cRes.exit_code !== 0) throw new Error(`getter count: exit_code ${cRes.exit_code}`);
+    const deals = parseInt(cRes.stack[0][1], 16);
+
+    contractAddr = addr;
+
+    const dt = new Date(startTimeSec * 1000);
+    document.getElementById('sDate').textContent =
+      dt.toLocaleDateString('en-GB', { day:'2-digit', month:'2-digit', year:'numeric' });
+    document.getElementById('sTime').textContent =
+      dt.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }) + ' (local)';
+    document.getElementById('sDeals').textContent = deals;
+    document.getElementById('sBal').textContent   = nanoFmt(balNano, 4) + ' TON';
+    document.getElementById('sBalNano').textContent = commas(balNano.toString()) + ' nano';
+
+    show('infoCard');
+    document.getElementById('dealIn').disabled = false;
+    document.getElementById('checkBtn').disabled = false;
+
+    startTimer();
+    refreshClaimBtn();
+    setMsg(msgEl, 'ok', '✓ Data loaded');
+
+  } catch(e) {
+    console.error(e);
+    const msg = e.message || '';
+    const isRateLimit = /ratelimit|rate.limit|too many/i.test(msg);
+    setMsg(msgEl, 'err', isRateLimit
+      ? '✕ TonCenter: rate limit exceeded. Wait a few seconds and try again.'
+      : '✕ ' + (msg || 'Load error. Check the address and selected network.'));
+  } finally {
+    document.getElementById('loadBtn').disabled = false;
+  }
+}
+
+// ── ТАЙМЕР ────────────────────────────────────────────────
+function startTimer() {
+  clearInterval(timerTick);
+  tickTimer();
+  timerTick = setInterval(tickTimer, 1000);
+}
+
+function tickTimer() {
+  if (!startTimeSec) return;
+  const unlockAt = startTimeSec + EMERGENCY_DELAY;
+  const now = Math.floor(Date.now() / 1000);
+  const rem = unlockAt - now;
+  const elapsed = now - startTimeSec;
+
+  const tv = document.getElementById('timerVal');
+  const tf = document.getElementById('timerFill');
+
+  if (rem <= 0) {
+    tv.textContent = 'AVAILABLE';
+    tv.classList.add('ready');
+    tf.classList.add('ready');
+    tf.style.width = '100%';
+    document.getElementById('claimBtn').classList.add('available');
+  } else {
+    tv.classList.remove('ready');
+    tf.classList.remove('ready');
+    document.getElementById('claimBtn').classList.remove('available');
+
+    const h = Math.floor(rem / 3600);
+    const m = Math.floor((rem % 3600) / 60);
+    const s = rem % 60;
+    tv.textContent = `${p2(h)}:${p2(m)}:${p2(s)}`;
+
+    const pct = Math.min(100, Math.max(0, (elapsed / EMERGENCY_DELAY) * 100));
+    tf.style.width = pct.toFixed(1) + '%';
+  }
+  refreshClaimBtn();
+}
+
+// ── ПРОВЕРКА СДЕЛКИ ───────────────────────────────────────
+async function checkDeal() {
+  const id = document.getElementById('dealIn').value.trim();
+  const msgEl = document.getElementById('dealMsg');
+  hide('dealCard');
+  dealData = null;
+
+  if (!id || !contractAddr) {
+    return setMsg(msgEl, 'err', '✕ Enter deal ID');
+  }
+
+  setMsg(msgEl, 'info', '<span class="spin"></span>Fetching deal data…');
+  document.getElementById('checkBtn').disabled = true;
+
+  try {
+    await sleep(400);
+    const res = await runGetMethod(contractAddr, 'deal', [['num', id]]);
+
+    if (res.exit_code !== 0) {
+      const errTxt = ERR[res.exit_code] || `exit_code ${res.exit_code}`;
+      return setMsg(msgEl, 'err', `✕ ${errTxt}`);
+    }
+
+    // Null deal: stack[0][0] !== "cell" (returns "list" with empty elements)
+    if (!res.stack || !res.stack.length || res.stack[0][0] !== 'cell') {
+      return setMsg(msgEl, 'warn', `⚠ Deal #${id} not found — already paid out, cancelled, or wrong ID`);
+    }
+
+    // Формат стека: [["cell",{bytes}], ["cell",{bytes}], ["num","0x..."] x4, ["num","0x..."] extra]
+    const userBuy  = parseAddrFromStack(res.stack[0]);
+    const userSell = parseAddrFromStack(res.stack[1]);
+    const amtBuy   = parseBigFromStack(res.stack[2]);
+    const amtSell  = parseBigFromStack(res.stack[3]);
+    const depBuy   = parseBigFromStack(res.stack[4]);
+    const depSell  = parseBigFromStack(res.stack[5]);
+
+    dealData = { id, userBuy, userSell, amtBuy, amtSell, depBuy, depSell };
+
+    // Заполнение UI
+    document.getElementById('dealBadge').textContent = `Deal #${id}`;
+
+    document.getElementById('fBuy').textContent  = userBuy;
+    document.getElementById('fSell').textContent = userSell;
+
+    setAmt('fAmtBuy',  'fAmtBuyN',  amtBuy);
+    setAmt('fAmtSell', 'fAmtSellN', amtSell);
+    setDepAmt('fDepBuy',  'fDepBuyN',  'barBuy',  'pctBuy',  depBuy,  amtBuy);
+    setDepAmt('fDepSell', 'fDepSellN', 'barSell', 'pctSell', depSell, amtSell);
+
+    const funded = depBuy >= amtBuy && depSell >= amtSell;
+    togEl('fundedBadge', funded);
+
+    show('dealCard');
+    refreshClaimBtn();
+    setMsg(msgEl, 'ok', `✓ Deal #${id} found`);
+
+  } catch(e) {
+    console.error(e);
+    setMsg(msgEl, 'err', '✕ ' + fmtErr(e, 'Request error'));
+  } finally {
+    document.getElementById('checkBtn').disabled = false;
+  }
+}
+
+// ── EMERGENCY CLAIM ───────────────────────────────────────
+async function doClaim() {
+  const id   = document.getElementById('dealIn').value.trim();
+  const addr = contractAddr;
+  const msgEl = document.getElementById('claimMsg');
+
+  if (!walletAddr) {
+    connUI.openModal();
+    return;
+  }
+  if (!addr || !id) {
+    return setMsg(msgEl, 'err', 'Load a contract and enter a deal ID first');
+  }
+
+  try {
+    const cell = new TonWeb.boc.Cell();
+    cell.bits.writeUint(0x400, 32);          // opcode EmergencyClaim
+    cell.bits.writeUint(Number(id), 64);     // dealId
+    const boc = await cell.toBoc();
+    const payload = TonWeb.utils.bytesToBase64(boc);
+
+    setMsg(msgEl, 'info', '<span class="spin"></span>Confirm transaction in your wallet…');
+    document.getElementById('claimBtn').disabled = true;
+
+    await connUI.sendTransaction({
+      validUntil: Math.floor(Date.now() / 1000) + 600,
+      messages: [{ address: addr, amount: '50000000', payload }],
+    });
+
+    setMsg(msgEl, 'ok',
+      '✓ Transaction sent. Funds will arrive in ~30 sec after block confirmation.');
+
+  } catch(e) {
+    console.error(e);
+    setMsg(msgEl, 'err', '✕ ' + parseContractErr(e));
+  } finally {
+    refreshClaimBtn();
+  }
+}
+
+// ── ОБНОВЛЕНИЕ КНОПКИ CLAIM ───────────────────────────────
+function refreshClaimBtn() {
+  const ready = startTimeSec !== null &&
+    Math.floor(Date.now() / 1000) >= startTimeSec + EMERGENCY_DELAY;
+  const btn = document.getElementById('claimBtn');
+  btn.disabled = !contractAddr || !ready;
+  btn.textContent = walletAddr ? '⚡ REQUEST EMERGENCY CLAIM' : '⚡ CONNECT WALLET TO CLAIM';
+}
+
+setInterval(refreshClaimBtn, 1000);
+
+// ── УТИЛИТЫ ───────────────────────────────────────────────
+
+function parseNum(v) {
+  if (typeof v === 'number') return v;
+  return parseInt(String(v), 16) || 0;
+}
+
+// Парсинг из raw stack item: ["cell", { bytes: "base64_boc" }]
+function parseAddrFromStack(item) {
+  try {
+    const bytes = TonWeb.utils.base64ToBytes(item[1].bytes);
+    const cell = TonWeb.boc.Cell.oneFromBoc(bytes);
+    return cell.beginParse().loadAddress().toString(true, true, true);
+  } catch(e) { return '(address parse error)'; }
+}
+
+// Парсинг из raw stack item: ["num", "0x..."]
+function parseBigFromStack(item) {
+  try {
+    const hex = (item[1] || '0x0').replace('0x', '') || '0';
+    return BigInt('0x' + hex);
+  } catch { return 0n; }
+}
+
+function nanoFmt(nano, decimals = 6) {
+  try { return (Number(BigInt(nano)) / 1e9).toFixed(decimals); }
+  catch { return '?.??????'; }
+}
+
+function commas(v) {
+  return String(v).replace(/\B(?=(\d{3})+(?!\d))/g, '\u202F');
+}
+
+function setAmt(valId, nanoId, nano) {
+  document.getElementById(valId).textContent  = nanoFmt(nano, 6) + ' TON';
+  document.getElementById(nanoId).textContent = commas(nano.toString()) + ' nanoton';
+}
+
+function setDepAmt(valId, nanoId, barId, pctId, actual, expected) {
+  document.getElementById(valId).textContent  = nanoFmt(actual, 6) + ' TON';
+  document.getElementById(nanoId).textContent = commas(actual.toString()) + ' nanoton';
+  let pct = 0;
+  if (expected > 0n) pct = Math.min(100, Number((actual * 100n) / expected));
+  document.getElementById(barId).style.width = pct + '%';
+  document.getElementById(pctId).textContent = pct + '%';
+}
+
+function fmtErr(e, fallback) {
+  return (e && e.message) ? e.message : fallback;
+}
+
+function parseContractErr(e) {
+  const txt = String(e?.message || e);
+  const m = txt.match(/exit[_\s]?code[:\s]+(\d+)/i) || txt.match(/error[:\s]+(\d+)/i);
+  if (m) {
+    const code = parseInt(m[1]);
+    return (ERR[code] ? ERR[code] : `Contract error`) + ` (code ${code})`;
+  }
+  if (/cancel|reject|denied|user/i.test(txt)) return 'Transaction cancelled by user';
+  return txt || 'Unknown error';
+}
+
+function setMsg(el, type, html) {
+  el.className = `msg show ${type}`;
+  el.innerHTML = html;
+}
+
+function show(id) {
+  const el = document.getElementById(id);
+  el.classList.remove('h');
+  void el.offsetWidth; // reflow for animation
+  el.classList.add('fi');
+}
+
+function hide(id) { document.getElementById(id).classList.add('h'); }
+
+function togEl(id, visible) {
+  document.getElementById(id).classList.toggle('h', !visible);
+}
+
+function p2(n) { return String(n).padStart(2, '0'); }
+</script>
+</body>
+</html>

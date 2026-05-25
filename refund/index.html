@@ -652,7 +652,7 @@
 
   <div class="foot">
     All operations go directly to the TON blockchain — no exchange backend involved.<br>
-    <a href="https://github.com/tonfair" target="_blank">GitHub</a> &nbsp;·&nbsp; tonfair.com
+    <a href="https://tonfair.com" target="_blank">tonfair.com</a>
   </div>
 
 </div>
@@ -841,10 +841,13 @@ function tickTimer() {
     tf.classList.remove('ready');
     document.getElementById('claimBtn').classList.remove('available');
 
-    const h = Math.floor(rem / 3600);
-    const m = Math.floor((rem % 3600) / 60);
-    const s = rem % 60;
-    tv.textContent = `${p2(h)}:${p2(m)}:${p2(s)}`;
+    const days = Math.floor(rem / 86400);
+    const h    = Math.floor((rem % 86400) / 3600);
+    const m    = Math.floor((rem % 3600) / 60);
+    const s    = rem % 60;
+    tv.textContent = days > 0
+      ? `${days}d ${p2(h)}h ${p2(m)}m`
+      : `${p2(h)}:${p2(m)}:${p2(s)}`;
 
     const pct = Math.min(100, Math.max(0, (elapsed / EMERGENCY_DELAY) * 100));
     tf.style.width = pct.toFixed(1) + '%';

@@ -525,6 +525,57 @@
     </div>
   </div>
 
+  <!-- ════════════════ VAULT RECOVERY ════════════════ -->
+  <div class="sec-label">Vault Recovery</div>
+  <div class="card">
+    <div class="warn-box">
+      💰 Withdraw funds from your <b>personal Vault</b> directly via the blockchain — no exchange involved.<br>
+      <b>Step 1:</b> request withdrawal (this disables trading; the exchange gets ~5 min to close open orders).<br>
+      <b>Step 2:</b> after the timer ends — claim the full balance to your owner wallet.
+    </div>
+    <div class="row">
+      <input type="text" id="vaultIn" class="tf-in" placeholder="EQ… your vault contract address">
+      <button class="tf-btn" id="vaultLoadBtn" onclick="loadVault()">LOAD</button>
+    </div>
+    <div class="msg" id="vaultMsg"></div>
+
+    <!-- Vault state -->
+    <div class="h fi" id="vaultCard">
+      <div class="stats" style="margin-top:16px;">
+        <div class="stat">
+          <div class="stat-lbl">Balance</div>
+          <div class="stat-val" id="vBal">—</div>
+          <div class="stat-aux" id="vBalNano">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-lbl">Trading</div>
+          <div class="stat-val" id="vTrading">—</div>
+          <div class="stat-aux">isTradingActive</div>
+        </div>
+        <div class="stat">
+          <div class="stat-lbl">Owner</div>
+          <div class="stat-val" id="vOwner" style="font-size:0.7rem;">—</div>
+          <div class="stat-aux" id="vOwnerMatch">—</div>
+        </div>
+      </div>
+
+      <!-- Countdown: request → execute -->
+      <div class="h" id="vTimerWrap">
+        <div class="timer-lbl">Time until withdrawal unlocks</div>
+        <div class="timer-val" id="vTimerVal">--:--:--</div>
+        <div class="timer-track"><div class="timer-fill" id="vTimerFill" style="width:0%"></div></div>
+      </div>
+
+      <div class="wallet-info" id="vaultWalletInfo" style="margin-top:16px;">Wallet not connected — the button will prompt connection</div>
+
+      <!-- Action buttons (one visible at a time) -->
+      <button class="tf-btn tf-btn-red h" id="vInitBtn" onclick="doVaultInit()" style="margin-top:8px;">⏳ REQUEST WITHDRAWAL</button>
+      <button class="tf-btn tf-btn-red h" id="vExecBtn" onclick="doVaultExecute()" style="margin-top:8px;">⚡ EXECUTE WITHDRAWAL — CLAIM FULL BALANCE</button>
+      <button class="tf-btn h" id="vCancelBtn" onclick="doVaultCancel()" style="width:100%;margin-top:8px;background:#fff;border-color:var(--text-dim);color:var(--text-mid);">✕ CANCEL WITHDRAWAL</button>
+      <div class="msg" id="vActionMsg"></div>
+    </div>
+  </div>
+
   <!-- Contract -->
   <div class="sec-label">EventPool Contract</div>
   <div class="card">
@@ -641,8 +692,9 @@
   <div class="sec-label">Emergency Claim</div>
   <div class="card">
     <div class="warn-box">
-      ⚠ Available 3 days after the last owner activity. Requires ~0.05 TON for gas.<br>
-      Returns the actually deposited amounts without fees. Anyone can trigger — funds always go to vault addresses.
+      ⚠ Settle (permissionless). Emergency refund becomes available 3 days after the event start
+      if the exchange never proposed a result. Requires ~0.05 TON for gas.<br>
+      Returns the actually deposited amounts (minus tiny network fee). Anyone can trigger — funds always go to vault addresses.
     </div>
     <div id="ton-connect"></div>
     <div class="wallet-info" id="walletInfo">Not connected</div>
@@ -658,8 +710,8 @@
 </div>
 
 <script>
-// ── КОНСТАНТЫ ──────────────────────────────────────────────
-// Debug: 300 сек (5 мин). Production: 259200 (3 дня)
+// ── CONSTANTS ──────────────────────────────────────────────
+// Debug: 300 sec (5 min). Production: 259200 (3 days)
 const EMERGENCY_DELAY = 300; // 259200
 
 const RPC_URL = {
@@ -668,19 +720,27 @@ const RPC_URL = {
 };
 
 const ERR = {
-  101: 'Operation is owner-only',
+  // EventPool errors (event_pool.tolk, range 1xx)
+  101: 'Exchange-only operation',
   102: 'Invalid deal ID (must be > 0)',
-  103: 'Deal already exists',
-  104: 'Deal not found — already paid out, cancelled, or wrong ID',
-  105: 'Invalid recipient address',
-  106: 'Too early — wait 3 days without owner activity',
+  104: 'Deal not found — already settled, refunded, or wrong ID',
   107: 'Not a participant of this deal',
   108: 'No active deals in contract',
-  109: 'Only owner can deactivate the contract',
+  109: 'Only exchange can deactivate the contract',
+  110: 'Result not set yet — emergency refund needs 3 days after the event start',
+  112: 'Not settleable yet — the challenge/dispute window has not closed',
+  113: 'Wrong contract state for this operation',
+  // Vault errors (vault.tolk, range 2xx)
+  201: 'Vault: owner-only operation — connect the vault owner wallet',
+  202: 'Vault: operator-only operation',
+  203: 'Vault: trading disabled (withdrawal already requested)',
+  204: 'Vault: too early — the withdrawal timer has not expired yet',
+  205: 'Vault: no active withdrawal request',
+  207: 'Vault: challenge cooldown not elapsed',
   65535: 'Unknown message opcode',
 };
 
-// ── СОСТОЯНИЕ ─────────────────────────────────────────────
+// ── STATE ─────────────────────────────────────────────────
 let network     = 'testnet';
 let tonweb      = mkTonweb('testnet');
 let connUI      = null;
@@ -690,12 +750,21 @@ let startTimeSec = null;
 let dealData    = null;
 let timerTick   = null;
 
+// Vault recovery state
+// WITHDRAWAL_LOCK in vault.tolk: 300 sec (test) / 3600 (prod). Used only for the progress bar.
+const VAULT_WITHDRAWAL_LOCK = 300; // prod: 3600
+let vaultAddr          = null;
+let vaultOwner         = null;  // raw "0:hex" owner from the data cell
+let vaultWithdrawTs    = 0;     // unix unlock time (0 = no pending request)
+let vaultTradingActive = true;
+let vaultTimerTick     = null;
+
 // ── TONWEB + RPC HELPERS ──────────────────────────────────
 function mkTonweb(net) {
   return new TonWeb(new TonWeb.HttpProvider(RPC_URL[net]));
 }
 
-// Прямой fetch к TonCenter REST API (стабильнее чем TonWeb wrapper для сложных геттеров)
+// Direct fetch to the TonCenter REST API (more reliable than the TonWeb wrapper for complex getters)
 function restBase() {
   return RPC_URL[network].replace('/jsonRPC', '');
 }
@@ -715,7 +784,7 @@ async function runGetMethod(address, method, stack) {
 }
 
 // ── TON CONNECT ───────────────────────────────────────────
-// При деплое на GitHub Pages замените manifestUrl на свой:
+// When deploying to GitHub Pages, replace manifestUrl with your own:
 // https://<username>.github.io/<repo>/tonconnect-manifest.json
 connUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: 'https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json',
@@ -733,15 +802,17 @@ connUI.onStatusChange(w => {
     document.getElementById('walletInfo').textContent = 'Not connected';
   }
   refreshClaimBtn();
+  refreshVaultBtns();
 });
 
-// ── СЕТЬ ──────────────────────────────────────────────────
+// ── NETWORK ───────────────────────────────────────────────
 function setNet(net) {
   network = net;
   tonweb = mkTonweb(net);
   document.getElementById('btnMain').classList.toggle('active', net === 'mainnet');
   document.getElementById('btnTest').classList.toggle('active', net === 'testnet');
   resetContractState();
+  resetVaultState();
 }
 
 function resetContractState() {
@@ -753,7 +824,13 @@ function resetContractState() {
   refreshClaimBtn();
 }
 
-// ── ЗАГРУЗКА КОНТРАКТА ────────────────────────────────────
+function resetVaultState() {
+  vaultAddr = null; vaultOwner = null; vaultWithdrawTs = 0; vaultTradingActive = true;
+  clearInterval(vaultTimerTick);
+  hide('vaultCard');
+}
+
+// ── LOAD CONTRACT ─────────────────────────────────────────
 async function loadContract() {
   const addr = document.getElementById('contractIn').value.trim();
   const msgEl = document.getElementById('contractMsg');
@@ -765,7 +842,7 @@ async function loadContract() {
   document.getElementById('loadBtn').disabled = true;
 
   try {
-    // TonCenter free tier: ~1 req/s. Делаем задержку 800ms между вызовами чтобы не получить 429.
+    // TonCenter free tier: ~1 req/s. We delay between calls to avoid 429.
     const infoRes = await fetch(`${restBase()}/getAddressInformation?address=${encodeURIComponent(addr)}`).then(r => r.json());
     if (!infoRes.ok) throw new Error(infoRes.error || 'Failed to get contract info');
     if (infoRes.result.state !== 'active') throw new Error('Contract is not active. Check the address and network.');
@@ -813,7 +890,202 @@ async function loadContract() {
   }
 }
 
-// ── ТАЙМЕР ────────────────────────────────────────────────
+// ══════════════════ VAULT RECOVERY ════════════════════════
+
+// Normalizes a TON address to lowercase raw "0:hex" form for comparison.
+function normAddr(a) {
+  try {
+    return new TonWeb.utils.Address(a).toString(false, false, false).toLowerCase();
+  } catch { return String(a || '').toLowerCase(); }
+}
+
+// ── LOAD VAULT ────────────────────────────────────────────
+async function loadVault() {
+  const addr = document.getElementById('vaultIn').value.trim();
+  const msgEl = document.getElementById('vaultMsg');
+  hide('vaultCard');
+  clearInterval(vaultTimerTick);
+
+  if (!addr) { return setMsg(msgEl, 'err', '✕ Enter vault address'); }
+
+  setMsg(msgEl, 'info', '<span class="spin"></span>Querying blockchain…');
+  document.getElementById('vaultLoadBtn').disabled = true;
+
+  try {
+    const infoRes = await fetch(`${restBase()}/getAddressInformation?address=${encodeURIComponent(addr)}`).then(r => r.json());
+    if (!infoRes.ok) throw new Error(infoRes.error || 'Failed to get vault info');
+    if (infoRes.result.state !== 'active') throw new Error('Vault is not active. Check the address and network.');
+
+    const balNano = BigInt(infoRes.result.balance || '0');
+
+    // Parse the Storage cell (vault.tolk):
+    //   owner(267) + exchange(267) + withdrawTimestamp(32) + isTradingActive(1) + lastChallengeExpiry(32)
+    if (!infoRes.result.data) throw new Error('Vault has no data cell — not a deployed vault?');
+    const dataCell = TonWeb.boc.Cell.oneFromBoc(TonWeb.utils.base64ToBytes(infoRes.result.data));
+    const s = dataCell.beginParse();
+    const owner    = s.loadAddress();
+    s.loadAddress();                       // exchange — not needed
+    const ts       = s.loadUint(32).toNumber();
+    const trading  = s.loadBit();
+
+    vaultAddr          = addr;
+    vaultOwner         = owner ? normAddr(owner.toString(false, false, false)) : null;
+    vaultWithdrawTs    = ts;
+    vaultTradingActive = !!trading;
+
+    document.getElementById('vBal').textContent     = nanoFmt(balNano, 4) + ' TON';
+    document.getElementById('vBalNano').textContent = commas(balNano.toString()) + ' nano';
+    document.getElementById('vTrading').textContent = trading ? 'Active' : 'Locked';
+    const ownerShort = owner ? owner.toString(true, true, true) : '—';
+    document.getElementById('vOwner').textContent   = ownerShort
+      ? ownerShort.slice(0, 6) + '…' + ownerShort.slice(-4) : '—';
+
+    show('vaultCard');
+    startVaultTimer();
+    refreshVaultBtns();
+    setMsg(msgEl, 'ok', '✓ Vault loaded');
+
+  } catch(e) {
+    console.error(e);
+    const msg = e.message || '';
+    const isRateLimit = /ratelimit|rate.limit|too many/i.test(msg);
+    setMsg(msgEl, 'err', isRateLimit
+      ? '✕ TonCenter: rate limit exceeded. Wait a few seconds and try again.'
+      : '✕ ' + (msg || 'Load error. Check the address and selected network.'));
+  } finally {
+    document.getElementById('vaultLoadBtn').disabled = false;
+  }
+}
+
+// ── VAULT TIMER ───────────────────────────────────────────
+function startVaultTimer() {
+  clearInterval(vaultTimerTick);
+  tickVaultTimer();
+  vaultTimerTick = setInterval(tickVaultTimer, 1000);
+}
+
+function tickVaultTimer() {
+  const wrap = document.getElementById('vTimerWrap');
+  // No pending request — hide the timer
+  if (!vaultWithdrawTs) { wrap.classList.add('h'); return; }
+  wrap.classList.remove('h');
+
+  const now = Math.floor(Date.now() / 1000);
+  const rem = vaultWithdrawTs - now;
+  const tv = document.getElementById('vTimerVal');
+  const tf = document.getElementById('vTimerFill');
+
+  if (rem <= 0) {
+    tv.textContent = 'AVAILABLE';
+    tv.classList.add('ready');
+    tf.classList.add('ready');
+    tf.style.width = '100%';
+  } else {
+    tv.classList.remove('ready');
+    tf.classList.remove('ready');
+    const h = Math.floor(rem / 3600);
+    const m = Math.floor((rem % 3600) / 60);
+    const sec = rem % 60;
+    tv.textContent = `${p2(h)}:${p2(m)}:${p2(sec)}`;
+    const elapsed = VAULT_WITHDRAWAL_LOCK - rem;
+    const pct = Math.min(100, Math.max(0, (elapsed / VAULT_WITHDRAWAL_LOCK) * 100));
+    tf.style.width = pct.toFixed(1) + '%';
+  }
+  refreshVaultBtns();
+}
+
+// ── REFRESH VAULT BUTTONS ─────────────────────────────────
+function refreshVaultBtns() {
+  const initBtn   = document.getElementById('vInitBtn');
+  const execBtn   = document.getElementById('vExecBtn');
+  const cancelBtn = document.getElementById('vCancelBtn');
+  const matchEl   = document.getElementById('vOwnerMatch');
+  const walletEl  = document.getElementById('vaultWalletInfo');
+
+  if (!vaultAddr) {
+    [initBtn, execBtn, cancelBtn].forEach(b => b.classList.add('h'));
+    return;
+  }
+
+  // Compare the connected wallet with the vault owner
+  if (walletAddr && vaultOwner) {
+    const match = normAddr(walletAddr) === vaultOwner;
+    matchEl.textContent = match ? '✓ your wallet' : '⚠ NOT your wallet';
+    matchEl.style.color = match ? 'var(--green)' : 'var(--red)';
+    const s = walletAddr.slice(0,6) + '…' + walletAddr.slice(-4);
+    walletEl.innerHTML = match
+      ? `<span class="wallet-addr">${s}</span> connected (owner)`
+      : `<span style="color:var(--red)">${s}</span> connected — does NOT match vault owner. Withdrawal will fail (ERR 201).`;
+  } else {
+    matchEl.textContent = 'connect wallet';
+    matchEl.style.color = 'var(--text-mid)';
+    walletEl.textContent = 'Wallet not connected — the button will prompt connection';
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  const hasPending = vaultWithdrawTs > 0;
+  const unlocked   = hasPending && now >= vaultWithdrawTs;
+
+  // Button visibility by state
+  initBtn.classList.toggle('h', hasPending);
+  execBtn.classList.toggle('h', !unlocked);
+  cancelBtn.classList.toggle('h', !hasPending || unlocked);
+
+  // Execute pulses when it becomes available
+  execBtn.classList.toggle('available', unlocked);
+}
+
+// ── VAULT: build payload and send ─────────────────────────
+async function sendVaultOp(buildCell, msgEl, okText) {
+  if (!vaultAddr) return;
+  if (!walletAddr) { connUI.openModal(); return; }
+
+  try {
+    const cell = new TonWeb.boc.Cell();
+    buildCell(cell);
+    const payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
+
+    setMsg(msgEl, 'info', '<span class="spin"></span>Confirm transaction in your wallet…');
+
+    await connUI.sendTransaction({
+      validUntil: Math.floor(Date.now() / 1000) + 600,
+      // 0.02 TON gas budget — the vault refunds the surplus itself
+      messages: [{ address: vaultAddr, amount: '20000000', payload }],
+    });
+
+    setMsg(msgEl, 'ok', okText);
+    setTimeout(loadVault, 8000); // refresh state after confirmation
+  } catch(e) {
+    console.error(e);
+    setMsg(msgEl, 'err', '✕ ' + parseContractErr(e));
+  }
+}
+
+// 0x01 InitWithdrawal — 8-bit opcode (NOT 32, otherwise error 63)
+function doVaultInit() {
+  sendVaultOp(
+    cell => cell.bits.writeUint(0x01, 8),
+    document.getElementById('vActionMsg'),
+    '✓ Withdrawal requested. The timer has started — come back after it ends to claim.');
+}
+
+// 0x03 CancelWithdrawal
+function doVaultCancel() {
+  sendVaultOp(
+    cell => cell.bits.writeUint(0x03, 8),
+    document.getElementById('vActionMsg'),
+    '✓ Withdrawal cancelled. Trading restored.');
+}
+
+// 0x02 ExecuteWithdrawal + coins(0) → full balance
+function doVaultExecute() {
+  sendVaultOp(
+    cell => { cell.bits.writeUint(0x02, 8); cell.bits.writeCoins(0); },
+    document.getElementById('vActionMsg'),
+    '✓ Transaction sent. The full balance will arrive in ~30 sec after block confirmation.');
+}
+
+// ── TIMER ─────────────────────────────────────────────────
 function startTimer() {
   clearInterval(timerTick);
   tickTimer();
@@ -855,7 +1127,7 @@ function tickTimer() {
   refreshClaimBtn();
 }
 
-// ── ПРОВЕРКА СДЕЛКИ ───────────────────────────────────────
+// ── CHECK DEAL ────────────────────────────────────────────
 async function checkDeal() {
   const id = document.getElementById('dealIn').value.trim();
   const msgEl = document.getElementById('dealMsg');
@@ -883,7 +1155,7 @@ async function checkDeal() {
       return setMsg(msgEl, 'warn', `⚠ Deal #${id} not found — already paid out, cancelled, or wrong ID`);
     }
 
-    // Формат стека: [["cell",{bytes}], ["cell",{bytes}], ["num","0x..."] x4, ["num","0x..."] extra]
+    // Stack format: [["cell",{bytes}], ["cell",{bytes}], ["num","0x..."] x4, ["num","0x..."] extra]
     const userBuy  = parseAddrFromStack(res.stack[0]);
     const userSell = parseAddrFromStack(res.stack[1]);
     const amtBuy   = parseBigFromStack(res.stack[2]);
@@ -893,7 +1165,7 @@ async function checkDeal() {
 
     dealData = { id, userBuy, userSell, amtBuy, amtSell, depBuy, depSell };
 
-    // Заполнение UI
+    // Fill the UI
     document.getElementById('dealBadge').textContent = `Deal #${id}`;
 
     document.getElementById('fBuy').textContent  = userBuy;
@@ -919,7 +1191,7 @@ async function checkDeal() {
   }
 }
 
-// ── EMERGENCY CLAIM ───────────────────────────────────────
+// ── EMERGENCY CLAIM (SETTLE) ──────────────────────────────
 async function doClaim() {
   const id   = document.getElementById('dealIn').value.trim();
   const addr = contractAddr;
@@ -935,7 +1207,9 @@ async function doClaim() {
 
   try {
     const cell = new TonWeb.boc.Cell();
-    cell.bits.writeUint(0x400, 32);          // opcode EmergencyClaim
+    // 0x700 Settle (permissionless). In RS_PENDING state, DISPUTE_EMERGENCY (3 days) after
+    // startTime the contract performs doRefund — returns deposits to the participants' vault addresses.
+    cell.bits.writeUint(0x700, 32);          // opcode Settle
     cell.bits.writeUint(Number(id), 64);     // dealId
     const boc = await cell.toBoc();
     const payload = TonWeb.utils.bytesToBase64(boc);
@@ -959,25 +1233,25 @@ async function doClaim() {
   }
 }
 
-// ── ОБНОВЛЕНИЕ КНОПКИ CLAIM ───────────────────────────────
+// ── REFRESH CLAIM BUTTON ──────────────────────────────────
 function refreshClaimBtn() {
   const ready = startTimeSec !== null &&
     Math.floor(Date.now() / 1000) >= startTimeSec + EMERGENCY_DELAY;
   const btn = document.getElementById('claimBtn');
   btn.disabled = !contractAddr || !ready;
-  btn.textContent = walletAddr ? '⚡ REQUEST EMERGENCY CLAIM' : '⚡ CONNECT WALLET TO CLAIM';
+  btn.textContent = walletAddr ? '⚡ TRIGGER EMERGENCY REFUND (SETTLE)' : '⚡ CONNECT WALLET TO CLAIM';
 }
 
 setInterval(refreshClaimBtn, 1000);
 
-// ── УТИЛИТЫ ───────────────────────────────────────────────
+// ── UTILITIES ─────────────────────────────────────────────
 
 function parseNum(v) {
   if (typeof v === 'number') return v;
   return parseInt(String(v), 16) || 0;
 }
 
-// Парсинг из raw stack item: ["cell", { bytes: "base64_boc" }]
+// Parse from a raw stack item: ["cell", { bytes: "base64_boc" }]
 function parseAddrFromStack(item) {
   try {
     const bytes = TonWeb.utils.base64ToBytes(item[1].bytes);
@@ -986,7 +1260,7 @@ function parseAddrFromStack(item) {
   } catch(e) { return '(address parse error)'; }
 }
 
-// Парсинг из raw stack item: ["num", "0x..."]
+// Parse from a raw stack item: ["num", "0x..."]
 function parseBigFromStack(item) {
   try {
     const hex = (item[1] || '0x0').replace('0x', '') || '0';

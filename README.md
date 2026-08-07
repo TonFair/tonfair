@@ -1,19 +1,19 @@
 # TONFAIR Smart Contracts & Emergency Refund
 
-Репозиторий содержит исходный код ончейн-компонентов биржи TONFAIR и независимый интерфейс для экстренного возврата средств.
+This repository contains the source code for the TONFAIR exchange on-chain components and an independent emergency refund interface.
 
-## 📄 Смарт-контракты
-* `contracts/vault.tolk` — Хранилище средств и логика расчетов.
-* `contracts/event_pool.tolk` — Управление пулами событий.
+## 📄 Smart Contracts
+* `contracts/vault.tolk` — Funds vault and settlement logic.
+* `contracts/event_pool.tolk` — Event pool management.
+    
+## 🚨 Emergency Escape Hatch
+If the primary exchange interface is unavailable, you can withdraw your funds directly from the smart contract using our independent decentralized page hosted on GitHub Pages:
 
-## 🚨 Аварийный возврат (Emergency Escape Hatch)
-Если основной интерфейс биржи недоступен, вы можете забрать свои средства напрямую из смарт-контракта, используя нашу независимую децентрализованную страницу, размещенную на GitHub Pages:
+🔗 **[Launch Emergency Refund](https://tonfair.github.io/tonfair/refund)**
 
-🔗 **[Запустить Аварийный Возврат](https://tonfair.github.io/tonfair/refund)**
+*This page runs entirely client-side (in your browser), interacts directly with the contract via TON RPC, and does not depend on the exchange backend.*
 
-*Данная страница работает полностью на клиенте (в вашем браузере), связывается с контрактом напрямую через TON RPC и не зависит от бэкенда биржи.*
-
-
+    
 ```mermaid
 sequenceDiagram
     actor User as 🧑 Trader

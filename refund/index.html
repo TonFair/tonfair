@@ -6,7 +6,7 @@
   <title>TonFair · Emergency Recovery</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
   <script src="https://unpkg.com/tonweb@0.0.66/dist/tonweb.js"></script>
   <style>
@@ -362,6 +362,7 @@
     .badge-cyan  { color: #0284c7; border-color: #bae6fd; background: #f0f9ff; }
     .badge-green { color: #059669; border-color: #a7f3d0; background: #f0fdf4; }
     .badge-amber { color: #d97706; border-color: #fde68a; background: #fffbeb; }
+    .badge-red   { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
 
     .deal-fields { display: flex; flex-direction: column; gap: 12px; }
 
@@ -428,6 +429,43 @@
     }
 
     .hr { height: 1px; background: var(--border); margin: 10px 0; }
+
+    .deal-sides {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .deal-side {
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: #fff;
+      padding: 12px;
+    }
+
+    .deal-side-title {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      margin-bottom: 9px;
+    }
+
+    .deal-side .df { grid-template-columns: 110px 1fr; margin-top: 7px; }
+    .deal-side .df-lbl { letter-spacing: 0.04em; }
+
+    .deal-note {
+      margin-top: 10px;
+      color: var(--text-mid);
+      font-size: 0.68rem;
+      line-height: 1.45;
+    }
+
+    .addr-link { color: #0284c7; text-decoration: none; }
+    .addr-link:hover { text-decoration: underline; }
+
+    @media (max-width: 620px) {
+      .deal-sides { grid-template-columns: 1fr; }
+    }
 
     /* ── Status messages ── */
     .msg {
@@ -502,6 +540,341 @@
       .stats .stat:nth-child(3) { grid-column: span 2; border-left: none; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px; padding-left: 0; }
       .timer-val { font-size: 2rem; }
     }
+
+    /* ── Event Link ── */
+    .event-link-wrap {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .event-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border-hi);
+      border-radius: 20px;
+      color: var(--cyan);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 6px 16px;
+      text-decoration: none;
+      transition: all 0.18s;
+    }
+
+    .event-link-btn:hover {
+      background: var(--cyan);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(2,132,199,0.25);
+    }
+
+    /* ── Addresses Section ── */
+    .addr-sec {
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      margin-top: 14px;
+    }
+
+    .addr-sec-title {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      margin-bottom: 10px;
+    }
+
+    .addr-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .addr-row {
+      display: flex;
+      align-items: center;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .addr-lbl {
+      color: var(--text-mid);
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .addr-val-link {
+      color: var(--cyan);
+      text-decoration: none;
+      transition: color 0.15s;
+      word-break: break-all;
+    }
+
+    .addr-val-link:hover {
+      text-decoration: underline;
+      color: #0369a1;
+    }
+
+    /* ── Lifecycle Stepper ── */
+    .stepper-wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      margin: 18px 0 20px;
+      padding: 0 4px;
+    }
+
+    .stepper-track {
+      position: absolute;
+      top: 13px;
+      left: 16px;
+      right: 16px;
+      height: 3px;
+      background: var(--border);
+      z-index: 1;
+    }
+
+    .stepper-progress {
+      height: 100%;
+      background: var(--cyan);
+      transition: width 0.3s ease;
+    }
+
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+      gap: 5px;
+    }
+
+    .step-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      color: var(--text-mid);
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s ease;
+    }
+
+    .step-lbl {
+      font-family: var(--mono);
+      font-size: 0.55rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      white-space: nowrap;
+    }
+
+    .step-item.done .step-circle {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+    }
+
+    .step-item.active .step-circle {
+      background: var(--cyan);
+      border-color: var(--cyan);
+      color: #fff;
+      box-shadow: 0 0 0 4px rgba(2,132,199,0.18);
+    }
+
+    .step-item.active .step-lbl {
+      color: var(--cyan);
+      font-weight: 700;
+    }
+
+    .step-item.disputed.active .step-circle {
+      background: var(--amber);
+      border-color: var(--amber);
+      box-shadow: 0 0 0 4px rgba(217,119,6,0.18);
+    }
+
+    .step-item.disputed.active .step-lbl {
+      color: var(--amber);
+    }
+
+    /* ── Proposed Outcome Box ── */
+    .outcome-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .outcome-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      color: var(--text-mid);
+      margin-bottom: 6px;
+    }
+
+    .outcome-val {
+      font-family: var(--sans);
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: 0.05em;
+    }
+
+    .outcome-val.canceled {
+      color: var(--red);
+    }
+
+    /* ── Info Grid Cards ── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 480px) {
+      .info-grid { grid-template-columns: 1fr; }
+    }
+
+    .info-card-sub {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .info-card-sub-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .info-card-sub-body {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text);
+    }
+
+    .fee-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2px;
+    }
+
+    .fee-total {
+      border-top: 1px dashed var(--border);
+      padding-top: 3px;
+      margin-top: 3px;
+      color: var(--green);
+    }
+    /* Variant XX — quiet fintech */
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --surface2: #fafbfc;
+      --border: #e2e5ea;
+      --border-hi: #1769e0;
+      --text: #1a1d21;
+      --text-mid: #667085;
+      --text-dim: #98a2b3;
+      --cyan: #1769e0;
+      --amber: #b76e00;
+      --green: #087a55;
+      --red: #c9364f;
+      --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    body { font-size: 15px; line-height: 1.5; padding-top: 32px; }
+    body [class] { font-family: var(--sans); }
+    .wrap { max-width: 680px; }
+    .hdr { margin-bottom: 30px; }
+    .logo-icon { box-shadow: none; border-width: 1px; font-family: var(--mono); }
+    .logo-name { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.02em; text-transform: none; }
+    .logo-sub { font-size: 0.75rem; letter-spacing: 0; text-transform: none; color: var(--text-mid); }
+    .net-label { font-size: 0.72rem; letter-spacing: 0; text-transform: none; }
+    .net-toggle { border-radius: 8px; padding: 2px; }
+    .net-btn { font-size: 0.72rem; letter-spacing: 0; border-radius: 6px; padding: 5px 10px; text-transform: capitalize; }
+
+    .sec-label {
+      margin: 26px 0 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--text);
+    }
+
+    .card { border-radius: 12px; padding: 20px; box-shadow: 0 1px 2px rgba(16,24,40,0.03); }
+    .card:focus-within { box-shadow: 0 0 0 3px rgba(23,105,224,0.08); }
+    .tf-in { font-size: 0.86rem; border-radius: 8px; }
+    .tf-btn { font-size: 0.82rem; font-weight: 600; letter-spacing: 0; border-radius: 8px; text-transform: none; box-shadow: none; }
+    .tf-btn:hover { box-shadow: none; transform: none; filter: brightness(0.96); }
+    .tf-btn-red.available { animation: none; box-shadow: none; }
+
+    .warn-box { font-size: 0.78rem; line-height: 1.55; border-radius: 8px; border-left: 3px solid var(--amber); }
+    .stats { border-radius: 8px; }
+    .stat-lbl, .timer-lbl, .df-lbl, .info-card-sub-title {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--text-mid);
+    }
+    .stat-val { font-size: 0.95rem; font-weight: 600; }
+    body .stat-sub, body .stat-aux, body .df-nano, body .addr-link, body .addr-val-link, body .wallet-info { font-family: var(--mono); }
+    .timer-val { font-size: 2.15rem; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+    .timer-fill { background: var(--amber); }
+    .timer-fill.ready { background: var(--green); }
+
+    .deal-inner { background: var(--surface); border-radius: 8px; padding: 16px 0 0; border: 0; border-top: 1px solid var(--border); }
+    .deal-hdr, .deal-fields { padding-left: 2px; padding-right: 2px; }
+    .deal-sides { gap: 0; margin-top: 2px; }
+    .deal-side { border: 0; border-radius: 0; background: transparent; padding: 4px 18px 4px 2px; }
+    .deal-side + .deal-side { border-left: 1px solid var(--border); padding-left: 20px; padding-right: 2px; }
+    .deal-side-title { font-size: 0.78rem; font-weight: 600; }
+    .df { grid-template-columns: 116px 1fr; }
+    .df-val { font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+    .df-nano { font-size: 0.66rem; }
+    .badge { font-size: 0.7rem; font-weight: 600; border-radius: 999px; padding: 3px 9px; text-transform: none; }
+    #dealEligibilityBadge { border: 0; background: transparent; padding: 3px 0; color: var(--text-mid); font-weight: 500; }
+    #dealEligibilityBadge::before { content: '●'; color: var(--amber); margin-right: 6px; }
+    #dealEligibilityBadge.badge-green::before { color: var(--green); }
+    .dep-fill { background: var(--cyan); }
+    .deal-note { font-size: 0.72rem; border-top: 1px solid var(--border); padding-top: 12px; }
+    .msg { font-size: 0.75rem; }
+    .stepper-wrap { margin: 16px 0 22px; }
+    .stepper-track { top: 10px; height: 2px; }
+    .step-circle { width: 22px; height: 22px; border-width: 1px; font-size: 0.65rem; }
+    .step-lbl { font-size: 0.68rem; letter-spacing: 0; text-transform: none; }
+    .step-item.active .step-circle, .step-item.disputed.active .step-circle { box-shadow: none; }
+
+    @media (max-width: 620px) {
+      .deal-side { padding: 4px 2px 16px; }
+      .deal-side + .deal-side { border-left: 0; border-top: 1px solid var(--border); padding: 16px 2px 4px; }
+    }
   </style>
 </head>
 <body>
@@ -529,13 +902,13 @@
   <div class="sec-label">Vault Recovery</div>
   <div class="card">
     <div class="warn-box">
-      💰 Withdraw funds from your <b>personal Vault</b> directly via the blockchain — no exchange involved.<br>
+      Withdraw funds from your <b>personal Vault</b> directly via the blockchain — no exchange involved.<br>
       <b>Step 1:</b> request withdrawal (this disables trading; the exchange gets ~5 min to close open orders).<br>
       <b>Step 2:</b> after the timer ends — claim the full balance to your owner wallet.
     </div>
     <div class="row">
       <input type="text" id="vaultIn" class="tf-in" placeholder="EQ… your vault contract address">
-      <button class="tf-btn" id="vaultLoadBtn" onclick="loadVault()">LOAD</button>
+      <button class="tf-btn" id="vaultLoadBtn" onclick="loadVault()">Load vault</button>
     </div>
     <div class="msg" id="vaultMsg"></div>
 
@@ -569,9 +942,9 @@
       <div class="wallet-info" id="vaultWalletInfo" style="margin-top:16px;">Wallet not connected — the button will prompt connection</div>
 
       <!-- Action buttons (one visible at a time) -->
-      <button class="tf-btn tf-btn-red h" id="vInitBtn" onclick="doVaultInit()" style="margin-top:8px;">⏳ REQUEST WITHDRAWAL</button>
-      <button class="tf-btn tf-btn-red h" id="vExecBtn" onclick="doVaultExecute()" style="margin-top:8px;">⚡ EXECUTE WITHDRAWAL — CLAIM FULL BALANCE</button>
-      <button class="tf-btn h" id="vCancelBtn" onclick="doVaultCancel()" style="width:100%;margin-top:8px;background:#fff;border-color:var(--text-dim);color:var(--text-mid);">✕ CANCEL WITHDRAWAL</button>
+      <button class="tf-btn tf-btn-red h" id="vInitBtn" onclick="doVaultInit()" style="margin-top:8px;">Request withdrawal</button>
+      <button class="tf-btn tf-btn-red h" id="vExecBtn" onclick="doVaultExecute()" style="margin-top:8px;">Execute withdrawal</button>
+      <button class="tf-btn h" id="vCancelBtn" onclick="doVaultCancel()" style="width:100%;margin-top:8px;background:#fff;border-color:var(--text-dim);color:var(--text-mid);">Cancel withdrawal</button>
       <div class="msg" id="vActionMsg"></div>
     </div>
   </div>
@@ -581,13 +954,56 @@
   <div class="card">
     <div class="row">
       <input type="text" id="contractIn" class="tf-in" placeholder="EQ… event pool contract address">
-      <button class="tf-btn" id="loadBtn" onclick="loadContract()">LOAD</button>
+      <button class="tf-btn" id="loadBtn" onclick="loadContract()">Load contract</button>
     </div>
     <div class="msg" id="contractMsg"></div>
   </div>
 
   <!-- Contract info -->
   <div class="card h fi" id="infoCard">
+    <div class="event-link-wrap h" id="eventLinkWrap">
+      <a href="#" id="eventLink" target="_blank" class="event-link-btn">
+        <span>Event #<span id="eventLinkId">—</span> on TonFair</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+      </a>
+    </div>
+
+    <!-- Lifecycle Stepper -->
+    <div class="stepper-wrap" id="stepperWrap">
+      <div class="stepper-track">
+        <div class="stepper-progress" id="stepperProgress" style="width:0%"></div>
+      </div>
+      <div class="step-item" id="stepPending">
+        <div class="step-circle">1</div>
+        <div class="step-lbl">Pending</div>
+      </div>
+      <div class="step-item" id="stepProposed">
+        <div class="step-circle">2</div>
+        <div class="step-lbl">Proposed</div>
+      </div>
+      <div class="step-item" id="stepDisputed">
+        <div class="step-circle">3</div>
+        <div class="step-lbl">Disputed</div>
+      </div>
+      <div class="step-item" id="stepResolved">
+        <div class="step-circle">4</div>
+        <div class="step-lbl">Resolved</div>
+      </div>
+      <div class="step-item" id="stepProcessed">
+        <div class="step-circle">5</div>
+        <div class="step-lbl">Processed</div>
+      </div>
+    </div>
+
+    <!-- Proposed Outcome Banner -->
+    <div class="outcome-box h" id="outcomeBox">
+      <div class="outcome-hdr">
+        <span id="outcomeLabel">PROPOSED OUTCOME</span>
+        <span class="badge badge-amber" id="outcomeStatusBadge">PROPOSED</span>
+      </div>
+      <div class="outcome-val" id="outcomeValue">—</div>
+    </div>
+
     <div class="stats">
       <div class="stat">
         <div class="stat-lbl">Start Date</div>
@@ -606,9 +1022,56 @@
       </div>
     </div>
     <div>
-      <div class="timer-lbl">Time until emergency claim</div>
+      <div class="timer-lbl" id="mainTimerLbl">Time until emergency claim</div>
       <div class="timer-val" id="timerVal">--:--:--</div>
       <div class="timer-track"><div class="timer-fill" id="timerFill" style="width:0%"></div></div>
+    </div>
+
+    <!-- Info Grid Cards: Fee Cap & Super Oracle Shield -->
+    <div class="info-grid">
+      <!-- Fee Cap Badge -->
+      <div class="info-card-sub" id="feeCapBox">
+        <div class="info-card-sub-title">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          On-Chain Fee Cap
+        </div>
+        <div class="info-card-sub-body">
+          <div class="fee-row"><span>Creator:</span> <b id="feeCreatorVal">0%</b></div>
+          <div class="fee-row"><span>Exchange:</span> <b id="feeExchangeVal">5%</b></div>
+          <div class="fee-row fee-total"><span>Total Max:</span> <b id="feeTotalVal">5% (Enforced)</b></div>
+        </div>
+      </div>
+
+      <!-- Super Oracle Shield -->
+      <div class="info-card-sub" id="oracleShieldBox">
+        <div class="info-card-sub-title">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          Super Oracle Shield
+        </div>
+        <div class="info-card-sub-body" style="font-size: 0.62rem; line-height: 1.4;">
+          Outcome proposed by <b id="proposerRoleText">Exchange Operator</b>. Disputes resolved by Super Oracle (<a id="oracleLinkShield" href="#" target="_blank" style="color:var(--cyan);text-decoration:none;">view oracle</a>).
+        </div>
+      </div>
+    </div>
+
+    <!-- Contract Addresses -->
+    <div class="addr-sec" id="addrSec">
+      <div class="addr-sec-title">Contract Addresses</div>
+      <div class="addr-list">
+        <div class="addr-row h" id="rowExchange">
+          <span class="addr-lbl">Exchange:</span>
+          <a href="#" id="linkExchange" target="_blank" class="addr-val-link">—</a>
+        </div>
+        <div class="addr-row h" id="rowOracle">
+          <span class="addr-lbl">Oracle:</span>
+          <a href="#" id="linkOracle" target="_blank" class="addr-val-link">—</a>
+        </div>
+        <div class="addr-row h" id="rowCreator">
+          <span class="addr-lbl">Creator:</span>
+          <a href="#" id="linkCreator" target="_blank" class="addr-val-link">—</a>
+          <span class="badge badge-cyan" id="badgeUserEvent" style="margin-left: 6px; font-size: 0.55rem;">User Event</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -617,72 +1080,117 @@
   <div class="card">
     <div class="row">
       <input type="number" id="dealIn" class="tf-in" placeholder="Deal ID" disabled>
-      <button class="tf-btn" id="checkBtn" onclick="checkDeal()" disabled>CHECK</button>
+      <button class="tf-btn" id="checkBtn" onclick="checkDeal()" disabled>Check deal</button>
     </div>
 
     <!-- Deal details -->
     <div class="deal-inner h fi" id="dealCard">
       <div class="deal-hdr">
         <span class="badge badge-cyan" id="dealBadge">Deal #—</span>
-        <span class="badge badge-amber h" id="fundedBadge">Funded</span>
+        <span class="badge badge-amber" id="dealStateBadge">—</span>
+        <span class="badge badge-cyan" id="dealEligibilityBadge">Settlement —</span>
       </div>
 
       <div class="deal-fields">
         <div class="df">
-          <div class="df-lbl">BUY Vault</div>
-          <div class="df-val" id="fBuy">—</div>
+          <div class="df-lbl">Funding deadline</div>
+          <div class="df-val"><span id="fDeadline">—</span><span class="df-nano" id="fDeadlineRel"></span></div>
         </div>
         <div class="df">
-          <div class="df-lbl">SELL Vault</div>
-          <div class="df-val" id="fSell">—</div>
+          <div class="df-lbl">Bet terms</div>
+          <div class="df-val"><span id="fBetType">—</span><span class="df-nano" id="fBetParam"></span></div>
         </div>
       </div>
 
       <div class="hr"></div>
 
-      <div class="deal-fields">
-        <div class="df">
-          <div class="df-lbl">Expected BUY</div>
-          <div class="df-val">
-            <span id="fAmtBuy">—</span>
-            <span class="df-nano" id="fAmtBuyN"></span>
+      <div class="deal-sides">
+        <div class="deal-side">
+          <div class="deal-side-title" style="color:#0284c7">BUY side</div>
+          <div class="df">
+            <div class="df-lbl">Vault</div>
+            <div class="df-val"><a id="fBuy" class="addr-link" target="_blank" rel="noopener">—</a></div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Required</div>
+            <div class="df-val"><span id="fAmtBuy">—</span><span class="df-nano" id="fAmtBuyN"></span></div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Deposited / risk</div>
+            <div class="df-val">
+              <span id="fDepBuy">—</span><span class="df-nano" id="fDepBuyN"></span>
+              <div class="dep-row"><div class="dep-track"><div class="dep-fill" id="barBuy" style="width:0%"></div></div><div class="dep-pct" id="pctBuy">0%</div></div>
+            </div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Winner fee</div>
+            <div class="df-val" id="fFeeBuy">—</div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Gross profit</div>
+            <div class="df-val" id="fGrossBuy">—</div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Profit after fee</div>
+            <div class="df-val" id="fAfterFeeBuy">—</div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Fixed contract costs</div>
+            <div class="df-val"><span id="fFixedBuy">—</span><span class="df-nano" id="fFixedBuyN"></span></div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Final profit est.</div>
+            <div class="df-val" id="fProfitBuy">—</div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Net payout est.</div>
+            <div class="df-val" id="fPayoutBuy">—</div>
           </div>
         </div>
-        <div class="df">
-          <div class="df-lbl">Expected SELL</div>
-          <div class="df-val">
-            <span id="fAmtSell">—</span>
-            <span class="df-nano" id="fAmtSellN"></span>
+        <div class="deal-side">
+          <div class="deal-side-title" style="color:#d97706">SELL side</div>
+          <div class="df">
+            <div class="df-lbl">Vault</div>
+            <div class="df-val"><a id="fSell" class="addr-link" target="_blank" rel="noopener">—</a></div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Required</div>
+            <div class="df-val"><span id="fAmtSell">—</span><span class="df-nano" id="fAmtSellN"></span></div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Deposited / risk</div>
+            <div class="df-val">
+              <span id="fDepSell">—</span><span class="df-nano" id="fDepSellN"></span>
+              <div class="dep-row"><div class="dep-track"><div class="dep-fill" id="barSell" style="width:0%"></div></div><div class="dep-pct" id="pctSell">0%</div></div>
+            </div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Winner fee</div>
+            <div class="df-val" id="fFeeSell">—</div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Gross profit</div>
+            <div class="df-val" id="fGrossSell">—</div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Profit after fee</div>
+            <div class="df-val" id="fAfterFeeSell">—</div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Fixed contract costs</div>
+            <div class="df-val"><span id="fFixedSell">—</span><span class="df-nano" id="fFixedSellN"></span></div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Final profit est.</div>
+            <div class="df-val" id="fProfitSell">—</div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Net payout est.</div>
+            <div class="df-val" id="fPayoutSell">—</div>
           </div>
         </div>
       </div>
-
-      <div class="hr"></div>
-
-      <div class="deal-fields">
-        <div class="df">
-          <div class="df-lbl">Deposited BUY</div>
-          <div class="df-val">
-            <span id="fDepBuy">—</span>
-            <span class="df-nano" id="fDepBuyN"></span>
-            <div class="dep-row">
-              <div class="dep-track"><div class="dep-fill" id="barBuy" style="width:0%"></div></div>
-              <div class="dep-pct" id="pctBuy">0%</div>
-            </div>
-          </div>
-        </div>
-        <div class="df">
-          <div class="df-lbl">Deposited SELL</div>
-          <div class="df-val">
-            <span id="fDepSell">—</span>
-            <span class="df-nano" id="fDepSellN"></span>
-            <div class="dep-row">
-              <div class="dep-track"><div class="dep-fill" id="barSell" style="width:0%"></div></div>
-              <div class="dep-pct" id="pctSell">0%</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div class="deal-note" id="dealEstimateNote"></div>
     </div>
 
     <div class="msg" id="dealMsg"></div>
@@ -692,7 +1200,7 @@
   <div class="sec-label">Emergency Claim</div>
   <div class="card">
     <div class="warn-box">
-      ⚠ Settle (permissionless). Emergency refund becomes available 3 days after the event start
+      Settle is permissionless. Emergency refund becomes available 3 days after the event start
       if the exchange never proposed a result. Requires ~0.05 TON for gas.<br>
       Returns the actually deposited amounts (minus tiny network fee). Anyone can trigger — funds always go to vault addresses.
     </div>
@@ -711,8 +1219,10 @@
 
 <script>
 // ── CONSTANTS ──────────────────────────────────────────────
-// Debug: 300 sec (5 min). Production: 259200 (3 days)
-const EMERGENCY_DELAY = 300; // 259200
+const EMERGENCY_DELAY = 259200; // EventPool DISPUTE_EMERGENCY: 3 days
+const DEPLOY_FEE = 20000000n;
+const TRANSFER_GAS_FEE = 20000000n;
+const DEPOSIT_TOLERANCE = 1000000n;
 
 const RPC_URL = {
   mainnet: 'https://toncenter.com/api/v2/jsonRPC',
@@ -730,6 +1240,15 @@ const ERR = {
   110: 'Result not set yet — emergency refund needs 3 days after the event start',
   112: 'Not settleable yet — the challenge/dispute window has not closed',
   113: 'Wrong contract state for this operation',
+  114: 'Result is already disputed',
+  115: 'Wrong dispute deposit amount',
+  116: 'Oracle-only operation',
+  117: 'Challenge period is over',
+  118: 'Invalid contract or fee configuration',
+  119: 'Invalid bet type',
+  120: 'Funding deadline has not elapsed yet',
+  121: 'Deal is already funded',
+  122: 'Not enough gas to expire the deal',
   // Vault errors (vault.tolk, range 2xx)
   201: 'Vault: owner-only operation — connect the vault owner wallet',
   202: 'Vault: operator-only operation',
@@ -740,31 +1259,11 @@ const ERR = {
   65535: 'Unknown message opcode',
 };
 
-// ── STATE ─────────────────────────────────────────────────
-let network     = 'testnet';
-let tonweb      = mkTonweb('testnet');
-let connUI      = null;
-let walletAddr  = null;
-let contractAddr = null;
-let startTimeSec = null;
-let dealData    = null;
-let timerTick   = null;
-
-// Vault recovery state
-// WITHDRAWAL_LOCK in vault.tolk: 300 sec (test) / 3600 (prod). Used only for the progress bar.
-const VAULT_WITHDRAWAL_LOCK = 300; // prod: 3600
-let vaultAddr          = null;
-let vaultOwner         = null;  // raw "0:hex" owner from the data cell
-let vaultWithdrawTs    = 0;     // unix unlock time (0 = no pending request)
-let vaultTradingActive = true;
-let vaultTimerTick     = null;
-
 // ── TONWEB + RPC HELPERS ──────────────────────────────────
 function mkTonweb(net) {
   return new TonWeb(new TonWeb.HttpProvider(RPC_URL[net]));
 }
 
-// Direct fetch to the TonCenter REST API (more reliable than the TonWeb wrapper for complex getters)
 function restBase() {
   return RPC_URL[network].replace('/jsonRPC', '');
 }
@@ -783,42 +1282,71 @@ async function runGetMethod(address, method, stack) {
   return d.result; // { exit_code, stack, ... }
 }
 
-// ── TON CONNECT ───────────────────────────────────────────
-// When deploying to GitHub Pages, replace manifestUrl with your own:
-// https://<username>.github.io/<repo>/tonconnect-manifest.json
+// ── STATE ─────────────────────────────────────────────────
+let network     = 'testnet';
+let tonweb      = mkTonweb('testnet');
+let connUI      = null;
+let walletAddr  = null;
+let contractAddr = null;
+let startTimeSec = null;
+let dealData    = null;
+let timerTick   = null;
+
+let contractState = {
+  resultState: 0,
+  dealsCount: 0,
+  activeDealsCount: 0,
+  eventType: 0,
+  proposedAt: 0,
+  challengedAt: 0,
+  challengePeriod: 21600,
+  challengeDeadline: 0,
+  disputeEmergencyDeadline: 0,
+  scoreHome: 0,
+  scoreAway: 0,
+  predictionResult: 0,
+  creatorFeePct: 0,
+  exchangeFeePct: 5,
+  isUserEvent: false,
+  creatorAddr: null,
+  oracleAddr: null,
+  exchangeAddr: null
+};
+
+// Vault recovery state
+// WITHDRAWAL_LOCK in vault.tolk: 300 sec (test) / 3600 (prod). Used only for the progress bar.
+const VAULT_WITHDRAWAL_LOCK = 300; // prod: 3600
+let vaultAddr          = null;
+let vaultOwner         = null;  // raw "0:hex" owner from the data cell
+let vaultWithdrawTs    = 0;     // unix unlock time (0 = no pending request)
+let vaultTradingActive = true;
+let vaultTimerTick     = null;
+
 connUI = new TON_CONNECT_UI.TonConnectUI({
-  manifestUrl: 'https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json',
+  manifestUrl: new URL('./public/tonconnect-manifest.json', window.location.href).toString(),
   buttonRootId: 'ton-connect',
 });
 
 connUI.onStatusChange(w => {
-  if (w) {
-    walletAddr = w.account.address;
-    const s = walletAddr.slice(0,6) + '…' + walletAddr.slice(-4);
-    document.getElementById('walletInfo').innerHTML =
-      `<span class="wallet-addr">${s}</span> connected`;
-  } else {
-    walletAddr = null;
-    document.getElementById('walletInfo').textContent = 'Not connected';
-  }
+  walletAddr = w ? w.account.address : null;
+  document.getElementById('walletInfo').textContent = walletAddr
+    ? `${walletAddr.slice(0, 6)}…${walletAddr.slice(-4)} connected`
+    : 'Not connected';
   refreshClaimBtn();
   refreshVaultBtns();
 });
 
-// ── NETWORK ───────────────────────────────────────────────
-function setNet(net) {
-  network = net;
-  tonweb = mkTonweb(net);
-  document.getElementById('btnMain').classList.toggle('active', net === 'mainnet');
-  document.getElementById('btnTest').classList.toggle('active', net === 'testnet');
-  resetContractState();
-  resetVaultState();
-}
-
 function resetContractState() {
   contractAddr = null; startTimeSec = null; dealData = null;
+  contractState = {
+    resultState: 0, dealsCount: 0, activeDealsCount: 0, eventType: 0, proposedAt: 0, challengedAt: 0, challengePeriod: 21600,
+    challengeDeadline: 0, disputeEmergencyDeadline: 0, scoreHome: 0, scoreAway: 0,
+    predictionResult: 0, creatorFeePct: 0, exchangeFeePct: 5, isUserEvent: false,
+    creatorAddr: null, oracleAddr: null, exchangeAddr: null
+  };
   clearInterval(timerTick);
-  hide('infoCard'); hide('dealCard');
+  hide('infoCard'); hide('dealCard'); hide('outcomeBox');
+  hide('eventLinkWrap'); hide('rowExchange'); hide('rowOracle'); hide('rowCreator');
   document.getElementById('dealIn').disabled = true;
   document.getElementById('checkBtn').disabled = true;
   refreshClaimBtn();
@@ -830,11 +1358,25 @@ function resetVaultState() {
   hide('vaultCard');
 }
 
+// Helper to parse TON Address from TonCenter runGetMethod stack item (slice/cell)
+function parseAddrFromStackItem(item) {
+  if (!item) return null;
+  if (Array.isArray(item) && (item[0] === 'cell' || item[0] === 'slice') && item[1] && item[1].bytes) {
+    try {
+      const cell = TonWeb.boc.Cell.oneFromBoc(TonWeb.utils.base64ToBytes(item[1].bytes));
+      const addr = cell.beginParse().loadAddress();
+      if (addr) return addr.toString(true, true, true);
+    } catch(e) {}
+  }
+  return null;
+}
+
 // ── LOAD CONTRACT ─────────────────────────────────────────
 async function loadContract() {
   const addr = document.getElementById('contractIn').value.trim();
   const msgEl = document.getElementById('contractMsg');
   hide('infoCard'); hide('dealCard');
+  hide('eventLinkWrap'); hide('rowExchange'); hide('rowOracle'); hide('rowCreator');
 
   if (!addr) { return setMsg(msgEl, 'err', '✕ Enter contract address'); }
 
@@ -842,24 +1384,191 @@ async function loadContract() {
   document.getElementById('loadBtn').disabled = true;
 
   try {
-    // TonCenter free tier: ~1 req/s. We delay between calls to avoid 429.
+    // 1 single request to TonCenter REST API — retrieves balance and complete data cell BOC
     const infoRes = await fetch(`${restBase()}/getAddressInformation?address=${encodeURIComponent(addr)}`).then(r => r.json());
     if (!infoRes.ok) throw new Error(infoRes.error || 'Failed to get contract info');
     if (infoRes.result.state !== 'active') throw new Error('Contract is not active. Check the address and network.');
     const balNano = BigInt(infoRes.result.balance || '0');
 
-    await sleep(1100);
-    const stRes = await runGetMethod(addr, 'startTime', []);
-    if (stRes.exit_code !== 0) throw new Error(`getter startTime: exit_code ${stRes.exit_code}`);
-    startTimeSec = parseInt(stRes.stack[0][1], 16);
-    if (!startTimeSec) throw new Error('startTime = 0. Make sure the contract is deployed with the startTime getter.');
-
-    await sleep(1100);
-    const cRes = await runGetMethod(addr, 'count', []);
-    if (cRes.exit_code !== 0) throw new Error(`getter count: exit_code ${cRes.exit_code}`);
-    const deals = parseInt(cRes.stack[0][1], 16);
-
     contractAddr = addr;
+
+    let eventId = '0';
+    let marketId = '0';
+    let deals = 0;
+    let activeDeals = 0;
+    let exchangeAddrStr = null;
+    let oracleAddrStr = null;
+    let creatorAddrStr = null;
+
+    // Direct local parsing of the current EventPool Storage layout.
+    if (infoRes.result.data) {
+      try {
+        const dataCell = TonWeb.boc.Cell.oneFromBoc(TonWeb.utils.base64ToBytes(infoRes.result.data));
+        const s = dataCell.beginParse();
+
+        try { startTimeSec = s.loadUint(32).toNumber(); } catch(e) {}
+
+        try {
+          const evBn = s.loadUint(64);
+          eventId = evBn ? evBn.toString() : '0';
+        } catch(e) {}
+
+        try {
+          const mBn = s.loadUint(64);
+          marketId = mBn ? mBn.toString() : '0';
+        } catch(e) {}
+
+        try {
+          const hasDealsDict = s.loadBit();
+          if (hasDealsDict && s.refs && s.refs.length > 0) {
+            s.loadRef(); // skip deals dict reference cell
+          }
+        } catch(e) {}
+
+        try { deals = s.loadUint(32).toNumber(); } catch(e) {}
+        try { activeDeals = s.loadUint(32).toNumber(); } catch(e) {}
+        try { contractState.resultState = s.loadUint(2).toNumber(); } catch(e) {}
+        try { contractState.scoreHome = s.loadInt(16).toNumber(); } catch(e) {}
+        try { contractState.scoreAway = s.loadInt(16).toNumber(); } catch(e) {}
+        try { contractState.predictionResult = s.loadUint(2).toNumber(); } catch(e) {}
+        try { contractState.proposedAt = s.loadUint(32).toNumber(); } catch(e) {}
+        try { contractState.challengedAt = s.loadUint(32).toNumber(); } catch(e) {}
+        try { contractState.eventType = s.loadUint(10).toNumber(); } catch(e) {}
+
+        if (s.refs && s.refs.length > 0) {
+          try {
+            const actorsCell = s.loadRef();
+            const as = actorsCell.beginParse();
+            const ex = as.loadAddress();
+            as.loadAddress(); // challenger
+            const or = as.loadAddress();
+
+            if (ex) exchangeAddrStr = ex.toString(true, true, true);
+            if (or) oracleAddrStr = or.toString(true, true, true);
+
+            if (as.refs && as.refs.length > 0) {
+              const creatorCell = as.loadRef();
+              const cs = creatorCell.beginParse();
+              const cr = cs.loadAddress();
+              try { contractState.creatorFeePct = cs.loadUint(3).toNumber(); } catch(e) {}
+              try { contractState.exchangeFeePct = cs.loadUint(3).toNumber(); } catch(e) {}
+              if (cr) creatorAddrStr = cr.toString(true, true, true);
+            }
+          } catch(e) {}
+        }
+      } catch (e) {
+        console.warn('Data cell parse notice:', e);
+      }
+    }
+
+    // Fallback getter queries if essential fields missing
+    if (!startTimeSec) {
+      try {
+        const stRes = await runGetMethod(addr, 'startTime', []);
+        if (stRes.exit_code === 0 && stRes.stack && stRes.stack[0]) {
+          startTimeSec = parseInt(stRes.stack[0][1], 16);
+        }
+      } catch(e) {}
+    }
+
+    if (!startTimeSec) throw new Error('startTime = 0 or missing in contract');
+
+    if (!eventId || eventId === '0') {
+      try {
+        const evRes = await runGetMethod(addr, 'eventId', []);
+        if (evRes.exit_code === 0 && evRes.stack && evRes.stack[0]) {
+          const val = parseInt(evRes.stack[0][1], 16);
+          if (val > 0) eventId = String(val);
+        }
+      } catch(e) {}
+    }
+
+    if (!marketId || marketId === '0') {
+      try {
+        const mRes = await runGetMethod(addr, 'market', []);
+        if (mRes.exit_code === 0 && mRes.stack && mRes.stack[0]) {
+          const val = parseInt(mRes.stack[0][1], 16);
+          if (val > 0) marketId = String(val);
+        }
+      } catch(e) {}
+    }
+
+    // Determine if User Event
+    const isZeroAddr = !creatorAddrStr || /^0+:0+$/.test(creatorAddrStr) || creatorAddrStr.startsWith('EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA') || creatorAddrStr.startsWith('UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+    const isUserEv = creatorAddrStr && !isZeroAddr && exchangeAddrStr && normAddr(creatorAddrStr) !== normAddr(exchangeAddrStr);
+
+    contractState.dealsCount = deals;
+    contractState.activeDealsCount = activeDeals;
+    contractState.isUserEvent = isUserEv;
+    contractState.exchangeAddr = exchangeAddrStr;
+    contractState.oracleAddr = oracleAddrStr;
+    contractState.creatorAddr = creatorAddrStr;
+    contractState.challengePeriod = contractState.eventType >= 101 && contractState.eventType <= 105 ? 300 : 21600;
+    contractState.challengeDeadline = contractState.resultState === 1
+      ? contractState.proposedAt + contractState.challengePeriod
+      : 0;
+    contractState.disputeEmergencyDeadline = contractState.resultState === 2
+      ? contractState.challengedAt + EMERGENCY_DELAY
+      : 0;
+
+    // Render Event Link
+    const eventLinkWrap = document.getElementById('eventLinkWrap');
+    const hasEventId = eventId && eventId !== '0';
+    if (hasEventId) {
+      const eventUrl = (marketId && marketId !== '0')
+        ? `https://tonfair.com/events/${eventId}/${marketId}`
+        : `https://tonfair.com/events/${eventId}`;
+      document.getElementById('eventLinkId').textContent = eventId;
+      document.getElementById('eventLink').href = eventUrl;
+      eventLinkWrap.classList.remove('h');
+    } else {
+      eventLinkWrap.classList.add('h');
+    }
+
+    // Helper for Tonviewer links
+    const getTonviewerUrl = (a) => {
+      const base = network === 'testnet' ? 'https://testnet.tonviewer.com' : 'https://tonviewer.com';
+      return `${base}/${encodeURIComponent(a)}`;
+    };
+
+    // Render Exchange address row
+    const rowExchange = document.getElementById('rowExchange');
+    const linkExchange = document.getElementById('linkExchange');
+    if (exchangeAddrStr) {
+      linkExchange.textContent = exchangeAddrStr;
+      linkExchange.href = getTonviewerUrl(exchangeAddrStr);
+      rowExchange.classList.remove('h');
+    } else {
+      rowExchange.classList.add('h');
+    }
+
+    // Render Oracle address row
+    const rowOracle = document.getElementById('rowOracle');
+    const linkOracle = document.getElementById('linkOracle');
+    if (oracleAddrStr) {
+      linkOracle.textContent = oracleAddrStr;
+      linkOracle.href = getTonviewerUrl(oracleAddrStr);
+      rowOracle.classList.remove('h');
+    } else {
+      rowOracle.classList.add('h');
+    }
+
+    // Render Creator address row
+    const rowCreator = document.getElementById('rowCreator');
+    const linkCreator = document.getElementById('linkCreator');
+    const badgeUserEvent = document.getElementById('badgeUserEvent');
+
+    if (creatorAddrStr && !isZeroAddr) {
+      linkCreator.textContent = creatorAddrStr;
+      linkCreator.href = getTonviewerUrl(creatorAddrStr);
+      rowCreator.classList.remove('h');
+      badgeUserEvent.classList.toggle('h', !isUserEv);
+    } else {
+      rowCreator.classList.add('h');
+    }
+
+    // Render Stepper, Proposed Outcome Box, Fee Cap Box, Oracle Shield
+    updateContractUI(contractState, deals, marketId);
 
     const dt = new Date(startTimeSec * 1000);
     document.getElementById('sDate').textContent =
@@ -887,6 +1596,123 @@ async function loadContract() {
       : '✕ ' + (msg || 'Load error. Check the address and selected network.'));
   } finally {
     document.getElementById('loadBtn').disabled = false;
+  }
+}
+
+// ── UPDATE CONTRACT UI COMPONENTS ─────────────────────────
+function updateContractUI(state, deals, marketId) {
+  // A. Fee Cap Box
+  const creatorFee = state.creatorFeePct ?? 0;
+  const exchangeFee = state.exchangeFeePct ?? 0;
+  if (state.isUserEvent) {
+    document.getElementById('feeCreatorVal').textContent = `${creatorFee}%`;
+    document.getElementById('feeExchangeVal').textContent = `${exchangeFee}%`;
+    document.getElementById('feeTotalVal').textContent = `${creatorFee + exchangeFee}% fixed`;
+  } else {
+    document.getElementById('feeCreatorVal').textContent = '—';
+    document.getElementById('feeExchangeVal').textContent = '0–5%';
+    document.getElementById('feeTotalVal').textContent = 'per winning deal';
+  }
+
+  // B. Super Oracle Shield
+  const proposerRoleText = document.getElementById('proposerRoleText');
+  if (state.isUserEvent) {
+    proposerRoleText.textContent = 'Event Creator or Exchange';
+    proposerRoleText.style.color = 'var(--cyan)';
+  } else {
+    proposerRoleText.textContent = 'Exchange Operator (TonFair)';
+    proposerRoleText.style.color = 'var(--text)';
+  }
+  if (state.oracleAddr) {
+    const link = document.getElementById('oracleLinkShield');
+    const base = network === 'testnet' ? 'https://testnet.tonviewer.com' : 'https://tonviewer.com';
+    link.href = `${base}/${encodeURIComponent(state.oracleAddr)}`;
+    link.textContent = state.oracleAddr.slice(0, 6) + '…' + state.oracleAddr.slice(-4);
+  }
+
+  // C. Proposed Outcome Banner
+  const outcomeBox = document.getElementById('outcomeBox');
+  const outcomeVal = document.getElementById('outcomeValue');
+  const outcomeStatusBadge = document.getElementById('outcomeStatusBadge');
+
+  if (state.resultState === 1 || state.resultState === 2 || state.resultState === 3) {
+    outcomeBox.classList.remove('h');
+    if (state.resultState === 1) {
+      outcomeStatusBadge.textContent = 'PROPOSED';
+      outcomeStatusBadge.className = 'badge badge-amber';
+    } else if (state.resultState === 2) {
+      outcomeStatusBadge.textContent = 'DISPUTED';
+      outcomeStatusBadge.className = 'badge badge-amber';
+    } else {
+      outcomeStatusBadge.textContent = 'RESOLVED';
+      outcomeStatusBadge.className = 'badge badge-green';
+    }
+
+    if (marketId > 0) {
+      if (state.predictionResult === 1) {
+        outcomeVal.textContent = 'YES';
+        outcomeVal.style.color = 'var(--green)';
+      } else if (state.predictionResult === 2) {
+        outcomeVal.textContent = 'NO';
+        outcomeVal.style.color = 'var(--red)';
+      } else if (state.predictionResult === 3) {
+        outcomeVal.textContent = 'CANCELED / VOID';
+        outcomeVal.className = 'outcome-val canceled';
+      } else {
+        outcomeVal.textContent = 'PENDING';
+        outcomeVal.style.color = 'var(--text)';
+      }
+    } else {
+      if (state.scoreHome === -1 && state.scoreAway === -1) {
+        outcomeVal.textContent = 'CANCELED / VOID';
+        outcomeVal.className = 'outcome-val canceled';
+      } else {
+        outcomeVal.textContent = `Score: ${state.scoreHome} - ${state.scoreAway}`;
+        outcomeVal.className = 'outcome-val';
+        outcomeVal.style.color = 'var(--text)';
+      }
+    }
+  } else {
+    outcomeBox.classList.add('h');
+  }
+
+  // D. Lifecycle Stepper
+  const stepPending = document.getElementById('stepPending');
+  const stepProposed = document.getElementById('stepProposed');
+  const stepDisputed = document.getElementById('stepDisputed');
+  const stepResolved = document.getElementById('stepResolved');
+  const stepProcessed = document.getElementById('stepProcessed');
+  const stepperProgress = document.getElementById('stepperProgress');
+
+  [stepPending, stepProposed, stepDisputed, stepResolved, stepProcessed].forEach(s => {
+    s.className = 'step-item';
+  });
+
+  if (deals === 0 && (state.resultState === 3 || state.resultState === 1 || state.resultState === 0)) {
+    stepPending.className = 'step-item done';
+    stepProposed.className = 'step-item done';
+    stepDisputed.className = 'step-item done';
+    stepResolved.className = 'step-item done';
+    stepProcessed.className = 'step-item active done';
+    stepperProgress.style.width = '100%';
+  } else if (state.resultState === 3) {
+    stepPending.className = 'step-item done';
+    stepProposed.className = 'step-item done';
+    stepDisputed.className = 'step-item done';
+    stepResolved.className = 'step-item active';
+    stepperProgress.style.width = '75%';
+  } else if (state.resultState === 2) {
+    stepPending.className = 'step-item done';
+    stepProposed.className = 'step-item done';
+    stepDisputed.className = 'step-item active disputed';
+    stepperProgress.style.width = '50%';
+  } else if (state.resultState === 1) {
+    stepPending.className = 'step-item done';
+    stepProposed.className = 'step-item active';
+    stepperProgress.style.width = '25%';
+  } else {
+    stepPending.className = 'step-item active';
+    stepperProgress.style.width = '0%';
   }
 }
 
@@ -1085,46 +1911,71 @@ function doVaultExecute() {
     '✓ Transaction sent. The full balance will arrive in ~30 sec after block confirmation.');
 }
 
-// ── TIMER ─────────────────────────────────────────────────
-function startTimer() {
-  clearInterval(timerTick);
-  tickTimer();
-  timerTick = setInterval(tickTimer, 1000);
-}
-
+// ── TIMER ─────────────────────────────────────────
 function tickTimer() {
   if (!startTimeSec) return;
-  const unlockAt = startTimeSec + EMERGENCY_DELAY;
-  const now = Math.floor(Date.now() / 1000);
-  const rem = unlockAt - now;
-  const elapsed = now - startTimeSec;
 
+  const mainTimerLbl = document.getElementById('mainTimerLbl');
   const tv = document.getElementById('timerVal');
   const tf = document.getElementById('timerFill');
+  const claimBtn = document.getElementById('claimBtn');
+  const now = Math.floor(Date.now() / 1000);
+
+  let targetTs = startTimeSec + EMERGENCY_DELAY;
+  let totalWindow = EMERGENCY_DELAY;
+  let labelText = 'Time until emergency claim';
+
+  if (contractState.resultState === 1 && contractState.challengeDeadline > 0) {
+    targetTs = contractState.challengeDeadline;
+    totalWindow = contractState.challengePeriod || 21600;
+    labelText = 'Time until challenge window closes';
+  } else if (contractState.resultState === 2 && contractState.disputeEmergencyDeadline > 0) {
+    targetTs = contractState.disputeEmergencyDeadline;
+    totalWindow = 259200; // 3 days
+    labelText = 'Time until Super Oracle emergency refund';
+  } else if (contractState.resultState === 3) {
+    mainTimerLbl.textContent = 'Settlement Status';
+    tv.textContent = 'CLAIM READY';
+    tv.classList.add('ready');
+    tf.classList.add('ready');
+    tf.style.width = '100%';
+    claimBtn.classList.add('available');
+    return;
+  }
+
+  mainTimerLbl.textContent = labelText;
+  const rem = targetTs - now;
 
   if (rem <= 0) {
     tv.textContent = 'AVAILABLE';
     tv.classList.add('ready');
     tf.classList.add('ready');
     tf.style.width = '100%';
-    document.getElementById('claimBtn').classList.add('available');
+    claimBtn.classList.add('available');
   } else {
     tv.classList.remove('ready');
     tf.classList.remove('ready');
-    document.getElementById('claimBtn').classList.remove('available');
-
+    claimBtn.classList.remove('available');
     const days = Math.floor(rem / 86400);
     const h    = Math.floor((rem % 86400) / 3600);
     const m    = Math.floor((rem % 3600) / 60);
-    const s    = rem % 60;
+    const sec  = rem % 60;
+
     tv.textContent = days > 0
       ? `${days}d ${p2(h)}h ${p2(m)}m`
-      : `${p2(h)}:${p2(m)}:${p2(s)}`;
+      : `${p2(h)}:${p2(m)}:${p2(sec)}`;
 
-    const pct = Math.min(100, Math.max(0, (elapsed / EMERGENCY_DELAY) * 100));
+    const elapsed = totalWindow - rem;
+    const pct = Math.min(100, Math.max(0, (elapsed / totalWindow) * 100));
     tf.style.width = pct.toFixed(1) + '%';
   }
-  refreshClaimBtn();
+}
+
+// ── TIMER ─────────────────────────────────────────────────
+function startTimer() {
+  clearInterval(timerTick);
+  tickTimer();
+  timerTick = setInterval(tickTimer, 1000);
 }
 
 // ── CHECK DEAL ────────────────────────────────────────────
@@ -1136,6 +1987,9 @@ async function checkDeal() {
 
   if (!id || !contractAddr) {
     return setMsg(msgEl, 'err', '✕ Enter deal ID');
+  }
+  if (!/^\d+$/.test(id) || BigInt(id) === 0n) {
+    return setMsg(msgEl, 'err', '✕ Deal ID must be a positive unsigned integer');
   }
 
   setMsg(msgEl, 'info', '<span class="spin"></span>Fetching deal data…');
@@ -1150,34 +2004,36 @@ async function checkDeal() {
       return setMsg(msgEl, 'err', `✕ ${errTxt}`);
     }
 
-    // Null deal: stack[0][0] !== "cell" (returns "list" with empty elements)
-    if (!res.stack || !res.stack.length || res.stack[0][0] !== 'cell') {
+    // Tolk flattens DealData? into 9 fields plus a nullable presence marker.
+    if (!isPresentDealStack(res.stack)) {
       return setMsg(msgEl, 'warn', `⚠ Deal #${id} not found — already paid out, cancelled, or wrong ID`);
     }
 
-    // Stack format: [["cell",{bytes}], ["cell",{bytes}], ["num","0x..."] x4, ["num","0x..."] extra]
-    const userBuy  = parseAddrFromStack(res.stack[0]);
-    const userSell = parseAddrFromStack(res.stack[1]);
-    const amtBuy   = parseBigFromStack(res.stack[2]);
-    const amtSell  = parseBigFromStack(res.stack[3]);
-    const depBuy   = parseBigFromStack(res.stack[4]);
-    const depSell  = parseBigFromStack(res.stack[5]);
-
-    dealData = { id, userBuy, userSell, amtBuy, amtSell, depBuy, depSell };
+    dealData = parseDealStack(id, res.stack);
+    const { state, fundingDeadline, userBuy, userSell, betType, betParam,
+      feeBuyPct, feeSellPct, amtBuy, amtSell, depBuy, depSell } = dealData;
 
     // Fill the UI
     document.getElementById('dealBadge').textContent = `Deal #${id}`;
+    renderDealState(state);
 
-    document.getElementById('fBuy').textContent  = userBuy;
-    document.getElementById('fSell').textContent = userSell;
+    const deadline = new Date(fundingDeadline * 1000);
+    document.getElementById('fDeadline').textContent = deadline.toLocaleString();
+    document.getElementById('fDeadlineRel').textContent = formatDeadlineRelative(fundingDeadline);
+    const terms = describeBet(betType, betParam);
+    document.getElementById('fBetType').textContent = terms.type;
+    document.getElementById('fBetParam').textContent = terms.param;
+
+    setVaultLink('fBuy', userBuy);
+    setVaultLink('fSell', userSell);
 
     setAmt('fAmtBuy',  'fAmtBuyN',  amtBuy);
     setAmt('fAmtSell', 'fAmtSellN', amtSell);
     setDepAmt('fDepBuy',  'fDepBuyN',  'barBuy',  'pctBuy',  depBuy,  amtBuy);
     setDepAmt('fDepSell', 'fDepSellN', 'barSell', 'pctSell', depSell, amtSell);
 
-    const funded = depBuy >= amtBuy && depSell >= amtSell;
-    togEl('fundedBadge', funded);
+    renderDealFinancials({ state, feeBuyPct, feeSellPct, amtBuy, amtSell, depBuy, depSell });
+    renderDealEligibility();
 
     show('dealCard');
     refreshClaimBtn();
@@ -1204,13 +2060,20 @@ async function doClaim() {
   if (!addr || !id) {
     return setMsg(msgEl, 'err', 'Load a contract and enter a deal ID first');
   }
+  if (!dealData || dealData.id !== id) {
+    return setMsg(msgEl, 'err', 'Load this deal before settlement');
+  }
+  if (dealData.state !== 1) {
+    return setMsg(msgEl, 'err', 'Only a FUNDED deal can be settled');
+  }
 
   try {
     const cell = new TonWeb.boc.Cell();
     // 0x700 Settle (permissionless). In RS_PENDING state, DISPUTE_EMERGENCY (3 days) after
     // startTime the contract performs doRefund — returns deposits to the participants' vault addresses.
     cell.bits.writeUint(0x700, 32);          // opcode Settle
-    cell.bits.writeUint(Number(id), 64);     // dealId
+    if (!/^\d+$/.test(id)) throw new Error('Deal ID must be an unsigned integer');
+    cell.bits.writeUint(new TonWeb.utils.BN(id, 10), 64); // dealId
     const boc = await cell.toBoc();
     const payload = TonWeb.utils.bytesToBase64(boc);
 
@@ -1235,16 +2098,214 @@ async function doClaim() {
 
 // ── REFRESH CLAIM BUTTON ──────────────────────────────────
 function refreshClaimBtn() {
-  const ready = startTimeSec !== null &&
-    Math.floor(Date.now() / 1000) >= startTimeSec + EMERGENCY_DELAY;
+  const eligibility = getSettlementEligibility();
+  const ready = eligibility.ready;
   const btn = document.getElementById('claimBtn');
-  btn.disabled = !contractAddr || !ready;
-  btn.textContent = walletAddr ? '⚡ TRIGGER EMERGENCY REFUND (SETTLE)' : '⚡ CONNECT WALLET TO CLAIM';
+  btn.disabled = !contractAddr || !walletAddr || !dealData || dealData.state !== 1 || !ready;
+  btn.textContent = walletAddr
+    ? (btn.disabled ? `Waiting — ${eligibility.shortReason.toLowerCase()}` : 'Settle deal')
+    : 'Connect wallet to settle';
+  btn.classList.toggle('available', !btn.disabled);
+  renderDealEligibility();
 }
 
 setInterval(refreshClaimBtn, 1000);
 
 // ── UTILITIES ─────────────────────────────────────────────
+
+function requireStackType(item, type, label) {
+  if (!Array.isArray(item) || item[0] !== type) {
+    throw new Error(`Unsupported EventPool deal ABI: ${label} must be ${type}`);
+  }
+  return item;
+}
+
+function isPresentDealStack(stack) {
+  if (!Array.isArray(stack) || stack.length < 10) {
+    throw new Error('Unsupported EventPool deal ABI: expected 10 stack items');
+  }
+  const marker = stack[9];
+  return Array.isArray(marker) && marker[0] === 'num' && parseBigFromStack(marker) !== 0n;
+}
+
+function parseDealStack(id, stack) {
+  if (!Array.isArray(stack) || stack.length < 10) {
+    throw new Error('Unsupported EventPool deal ABI: expected 10 stack items');
+  }
+  const state = Number(parseBigFromStack(requireStackType(stack[0], 'num', 'state')));
+  if (![0, 1, 2].includes(state)) throw new Error(`Unsupported deal state: ${state}`);
+
+  const fundingDeadline = Number(parseBigFromStack(requireStackType(stack[1], 'num', 'fundingDeadline')));
+  const userBuy = parseAddrFromStack(requireStackType(stack[2], 'cell', 'userBuy'));
+  const userSell = parseAddrFromStack(requireStackType(stack[3], 'cell', 'userSell'));
+  const betType = Number(parseBigFromStack(requireStackType(stack[4], 'num', 'betType')));
+  const betParam = parseBigFromStack(requireStackType(stack[5], 'num', 'betParam'));
+  const feeBuyPct = Number(parseBigFromStack(requireStackType(stack[6], 'num', 'feeBuyPct')));
+  const feeSellPct = Number(parseBigFromStack(requireStackType(stack[7], 'num', 'feeSellPct')));
+  const amounts = parseDealAmounts(requireStackType(stack[8], 'cell', 'amounts'));
+
+  return { id, state, fundingDeadline, userBuy, userSell, betType, betParam,
+    feeBuyPct, feeSellPct, ...amounts };
+}
+
+function parseDealAmounts(item) {
+  try {
+    const bytes = TonWeb.utils.base64ToBytes(item[1].bytes);
+    const cell = TonWeb.boc.Cell.oneFromBoc(bytes);
+    const slice = cell.beginParse();
+    return {
+      amtBuy: loadCoinsBigInt(slice),
+      amtSell: loadCoinsBigInt(slice),
+      depBuy: loadCoinsBigInt(slice),
+      depSell: loadCoinsBigInt(slice),
+    };
+  } catch (e) {
+    throw new Error(`Cannot decode DealAmounts cell: ${fmtErr(e, 'invalid BOC')}`);
+  }
+}
+
+// TON coins use VarUInteger 16: a 4-bit byte length followed by that many bytes.
+function loadCoinsBigInt(slice) {
+  const byteLength = slice.loadUint(4).toNumber();
+  if (byteLength === 0) return 0n;
+  return BigInt(slice.loadUint(byteLength * 8).toString(10));
+}
+
+function renderDealState(state) {
+  const badge = document.getElementById('dealStateBadge');
+  const states = {
+    0: ['FUNDING', 'badge-amber'],
+    1: ['FUNDED', 'badge-green'],
+    2: ['EXPIRED', 'badge-red'],
+  };
+  const [label, cls] = states[state] || ['UNKNOWN', 'badge-red'];
+  badge.textContent = label;
+  badge.className = `badge ${cls}`;
+}
+
+function formatDeadlineRelative(timestamp) {
+  const diff = timestamp - Math.floor(Date.now() / 1000);
+  if (diff === 0) return 'deadline is now';
+  const abs = Math.abs(diff);
+  const unit = abs >= 86400 ? `${Math.floor(abs / 86400)}d`
+    : abs >= 3600 ? `${Math.floor(abs / 3600)}h`
+    : abs >= 60 ? `${Math.floor(abs / 60)}m`
+    : `${abs}s`;
+  return diff > 0 ? `${unit} remaining` : `expired ${unit} ago`;
+}
+
+function describeBet(type, paramBig) {
+  const param = Number(paramBig);
+  const selection = (labels) => labels[param] ?? `value ${param}`;
+  if (type === 0) return { type: 'Result 1X2', param: `Selection: ${selection(['Home', 'Draw', 'Away'])}; BUY lays this outcome` };
+  if (type === 1) return { type: 'Double chance', param: `Selection: ${selection(['1X', 'X2', '12'])}; BUY lays this outcome` };
+  if (type === 2) return { type: 'Total over', param: `Threshold: ${(param / 10).toFixed(1)}; BUY backs OVER` };
+  if (type === 3) return { type: 'Total under', param: `Threshold: ${(param / 10).toFixed(1)}; BUY backs UNDER` };
+  if (type === 4 || type === 5) {
+    const handicap = (param - 1000) / 10;
+    return { type: type === 4 ? 'Home handicap' : 'Away handicap', param: `Handicap: ${handicap >= 0 ? '+' : ''}${handicap.toFixed(1)}; BUY lays the selection` };
+  }
+  if (type === 6) return { type: 'Exact score', param: `Score: ${param >> 8}:${param & 0xff}; BUY lays this score` };
+  if (type === 7) return { type: 'Even / odd', param: `Selection: ${selection(['Even', 'Odd'])}; BUY lays this parity` };
+  if (type === 8) return { type: 'Prediction', param: 'BUY = NO, SELL = YES' };
+  return { type: `Unknown type ${type}`, param: `Raw parameter: ${paramBig.toString()}` };
+}
+
+function setVaultLink(id, address) {
+  const el = document.getElementById(id);
+  const base = network === 'testnet' ? 'https://testnet.tonviewer.com' : 'https://tonviewer.com';
+  el.textContent = address;
+  el.href = `${base}/${encodeURIComponent(address)}`;
+}
+
+function renderDealFinancials(deal) {
+  const useActual = deal.state === 1;
+  const buyStake = useActual ? deal.depBuy : deal.amtBuy;
+  const sellStake = useActual ? deal.depSell : deal.amtSell;
+  const buyFeePct = contractState.isUserEvent
+    ? contractState.creatorFeePct + contractState.exchangeFeePct
+    : deal.feeBuyPct;
+  const sellFeePct = contractState.isUserEvent
+    ? contractState.creatorFeePct + contractState.exchangeFeePct
+    : deal.feeSellPct;
+  const feeText = (dealFee) => contractState.isUserEvent
+    ? `${contractState.creatorFeePct}% creator + ${contractState.exchangeFeePct}% exchange = ${dealFee}%`
+    : `${dealFee}% of profit`;
+
+  document.getElementById('fFeeBuy').textContent = feeText(buyFeePct);
+  document.getElementById('fFeeSell').textContent = feeText(sellFeePct);
+  document.getElementById('fGrossBuy').textContent = nanoFmt(sellStake, 6) + ' TON';
+  document.getElementById('fGrossSell').textContent = nanoFmt(buyStake, 6) + ' TON';
+
+  if (deal.state === 2 || contractState.dealsCount <= 0) {
+    ['fAfterFeeBuy', 'fFixedBuy', 'fProfitBuy', 'fPayoutBuy',
+      'fAfterFeeSell', 'fFixedSell', 'fProfitSell', 'fPayoutSell'].forEach(id => {
+      document.getElementById(id).textContent = 'N/A';
+    });
+    document.getElementById('fFixedBuyN').textContent = '';
+    document.getElementById('fFixedSellN').textContent = '';
+    document.getElementById('dealEstimateNote').textContent = deal.state === 2
+      ? 'Expired deals cannot be settled.'
+      : 'Payout estimate unavailable because dealsCount is zero.';
+    return;
+  }
+
+  const deployShare = DEPLOY_FEE / BigInt(contractState.dealsCount);
+  const fixedCosts = deployShare + TRANSFER_GAS_FEE;
+  const calc = (ownStake, grossProfit, feePct) => {
+    const percentageFee = grossProfit * BigInt(feePct) / 100n;
+    const afterFee = grossProfit - percentageFee;
+    const netProfit = afterFee - fixedCosts;
+    return { afterFee, netProfit, payout: ownStake + netProfit };
+  };
+  const buy = calc(buyStake, sellStake, buyFeePct);
+  const sell = calc(sellStake, buyStake, sellFeePct);
+  const fixedBreakdown = `Deployment share ${nanoFmt(deployShare, 2)} TON + payout gas reserve ${nanoFmt(TRANSFER_GAS_FEE, 2)} TON`;
+  document.getElementById('fAfterFeeBuy').textContent = nanoFmt(buy.afterFee, 6) + ' TON';
+  document.getElementById('fFixedBuy').textContent = nanoFmt(fixedCosts, 6) + ' TON';
+  document.getElementById('fFixedBuyN').textContent = fixedBreakdown;
+  document.getElementById('fProfitBuy').textContent = nanoFmt(buy.netProfit, 6) + ' TON';
+  document.getElementById('fPayoutBuy').textContent = nanoFmt(buy.payout, 6) + ' TON';
+  document.getElementById('fAfterFeeSell').textContent = nanoFmt(sell.afterFee, 6) + ' TON';
+  document.getElementById('fFixedSell').textContent = nanoFmt(fixedCosts, 6) + ' TON';
+  document.getElementById('fFixedSellN').textContent = fixedBreakdown;
+  document.getElementById('fProfitSell').textContent = nanoFmt(sell.netProfit, 6) + ' TON';
+  document.getElementById('fPayoutSell').textContent = nanoFmt(sell.payout, 6) + ' TON';
+  document.getElementById('dealEstimateNote').textContent =
+    `The deployment share is 0.020000 TON / dealsCount and may change before settlement. Caller transaction gas is separate and is not deducted here. ` +
+    (useActual ? 'It uses actual funded deposits.' : 'Until fully funded it uses the required deposits.');
+}
+
+function getSettlementEligibility() {
+  if (!dealData) return { ready: false, reason: 'Load a deal to check settlement eligibility', shortReason: 'LOAD A DEAL' };
+  if (dealData.state === 0) return { ready: false, reason: 'Deal funding is incomplete', shortReason: 'DEAL IS FUNDING' };
+  if (dealData.state === 2) return { ready: false, reason: 'Deal expired and cannot be settled', shortReason: 'DEAL EXPIRED' };
+  const now = Math.floor(Date.now() / 1000);
+  let ready = false;
+  let reason = 'Settlement window is not open';
+  if (startTimeSec !== null && contractState.resultState === 0) {
+    ready = now >= startTimeSec + EMERGENCY_DELAY;
+    reason = ready ? 'Emergency refund is available' : 'Waiting for the 3-day no-result emergency deadline';
+  } else if (contractState.resultState === 1) {
+    ready = now > contractState.challengeDeadline;
+    reason = ready ? 'Unchallenged result can be settled' : 'Challenge window is still open';
+  } else if (contractState.resultState === 2) {
+    ready = now >= contractState.disputeEmergencyDeadline;
+    reason = ready ? 'Oracle emergency refund is available' : 'Waiting for the 3-day oracle emergency deadline';
+  } else if (contractState.resultState === 3) {
+    ready = true;
+    reason = 'Resolved result can be settled';
+  }
+  return { ready, reason, shortReason: ready ? 'SETTLEMENT READY' : 'NOT AVAILABLE YET' };
+}
+
+function renderDealEligibility() {
+  const badge = document.getElementById('dealEligibilityBadge');
+  if (!badge || !dealData) return;
+  const eligibility = getSettlementEligibility();
+  badge.textContent = eligibility.ready ? 'Settlement ready' : eligibility.reason;
+  badge.className = `badge ${eligibility.ready ? 'badge-green' : 'badge-cyan'}`;
+}
 
 function parseNum(v) {
   if (typeof v === 'number') return v;
@@ -1257,7 +2318,7 @@ function parseAddrFromStack(item) {
     const bytes = TonWeb.utils.base64ToBytes(item[1].bytes);
     const cell = TonWeb.boc.Cell.oneFromBoc(bytes);
     return cell.beginParse().loadAddress().toString(true, true, true);
-  } catch(e) { return '(address parse error)'; }
+  } catch(e) { throw new Error('Cannot decode deal vault address'); }
 }
 
 // Parse from a raw stack item: ["num", "0x..."]
@@ -1286,7 +2347,11 @@ function setDepAmt(valId, nanoId, barId, pctId, actual, expected) {
   document.getElementById(valId).textContent  = nanoFmt(actual, 6) + ' TON';
   document.getElementById(nanoId).textContent = commas(actual.toString()) + ' nanoton';
   let pct = 0;
-  if (expected > 0n) pct = Math.min(100, Number((actual * 100n) / expected));
+  if (expected > 0n) {
+    pct = actual + DEPOSIT_TOLERANCE >= expected
+      ? 100
+      : Math.min(100, Number((actual * 100n) / expected));
+  }
   document.getElementById(barId).style.width = pct + '%';
   document.getElementById(pctId).textContent = pct + '%';
 }
